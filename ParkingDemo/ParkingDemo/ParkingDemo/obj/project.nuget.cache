@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "AqDnowL9M1iswLXXiU3m1kB76AIVS85BimVarjNbKTnj3WrtAJz00Igjdf1k6OBnz9//1jeANQP3H2vFpmIebA==",
+  "success": true,
+  "projectFilePath": "C:\\Parking\\ParkingDemo\\ParkingDemo\\ParkingDemo\\ParkingDemo.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\fateme\\.nuget\\packages\\grasshopper\\7.13.21348.13001\\grasshopper.7.13.21348.13001.nupkg.sha512",
+    "C:\\Users\\fateme\\.nuget\\packages\\rhinocommon\\7.13.21348.13001\\rhinocommon.7.13.21348.13001.nupkg.sha512"
+  ],
+  "logs": []
+}
