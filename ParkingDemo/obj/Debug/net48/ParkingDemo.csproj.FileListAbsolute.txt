@@ -1,9 +1,0 @@
-C:\Parking\ParkingDemo\ParkingDemo\ParkingDemo\bin\Debug\net48\ParkingDemo.gha
-C:\Parking\ParkingDemo\ParkingDemo\ParkingDemo\bin\Debug\net48\ParkingDemo.pdb
-C:\Parking\ParkingDemo\ParkingDemo\ParkingDemo\obj\Debug\net48\ParkingDemo.csproj.AssemblyReference.cache
-C:\Parking\ParkingDemo\ParkingDemo\ParkingDemo\obj\Debug\net48\ParkingDemo.GeneratedMSBuildEditorConfig.editorconfig
-C:\Parking\ParkingDemo\ParkingDemo\ParkingDemo\obj\Debug\net48\ParkingDemo.AssemblyInfoInputs.cache
-C:\Parking\ParkingDemo\ParkingDemo\ParkingDemo\obj\Debug\net48\ParkingDemo.AssemblyInfo.cs
-C:\Parking\ParkingDemo\ParkingDemo\ParkingDemo\obj\Debug\net48\ParkingDemo.csproj.CoreCompileInputs.cache
-C:\Parking\ParkingDemo\ParkingDemo\ParkingDemo\obj\Debug\net48\ParkingDemo.gha
-C:\Parking\ParkingDemo\ParkingDemo\ParkingDemo\obj\Debug\net48\ParkingDemo.pdb
