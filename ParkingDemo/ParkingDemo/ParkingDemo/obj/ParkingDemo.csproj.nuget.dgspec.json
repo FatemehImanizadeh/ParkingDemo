@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\ParkingDemo\\ParkingDemo\\ParkingDemo\\ParkingDemo.csproj": {}
+    "C:\\ParkingDemo\\ParkingDemo\\ParkingDemo\\ParkingDemo\\ParkingDemo\\ParkingDemo.csproj": {}
   },
   "projects": {
-    "C:\\ParkingDemo\\ParkingDemo\\ParkingDemo\\ParkingDemo.csproj": {
+    "C:\\ParkingDemo\\ParkingDemo\\ParkingDemo\\ParkingDemo\\ParkingDemo\\ParkingDemo.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\ParkingDemo\\ParkingDemo\\ParkingDemo\\ParkingDemo.csproj",
+        "projectUniqueName": "C:\\ParkingDemo\\ParkingDemo\\ParkingDemo\\ParkingDemo\\ParkingDemo\\ParkingDemo.csproj",
         "projectName": "ParkingDemo",
-        "projectPath": "C:\\ParkingDemo\\ParkingDemo\\ParkingDemo\\ParkingDemo.csproj",
+        "projectPath": "C:\\ParkingDemo\\ParkingDemo\\ParkingDemo\\ParkingDemo\\ParkingDemo\\ParkingDemo.csproj",
         "packagesPath": "C:\\Users\\fateme\\.nuget\\packages\\",
-        "outputPath": "C:\\ParkingDemo\\ParkingDemo\\ParkingDemo\\obj\\",
+        "outputPath": "C:\\ParkingDemo\\ParkingDemo\\ParkingDemo\\ParkingDemo\\ParkingDemo\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\fateme\\AppData\\Roaming\\NuGet\\NuGet.Config",

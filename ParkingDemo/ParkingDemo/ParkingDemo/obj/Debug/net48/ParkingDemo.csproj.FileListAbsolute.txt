@@ -17,3 +17,13 @@ C:\ParkingDemo\ParkingDemo\ParkingDemo\obj\Debug\net48\ParkingDemo.csproj.CoreCo
 C:\ParkingDemo\ParkingDemo\ParkingDemo\obj\Debug\net48\ParkingDemo.sourcelink.json
 C:\ParkingDemo\ParkingDemo\ParkingDemo\obj\Debug\net48\ParkingDemo.gha
 C:\ParkingDemo\ParkingDemo\ParkingDemo\obj\Debug\net48\ParkingDemo.pdb
+C:\ParkingDemo\ParkingDemo\ParkingDemo\ParkingDemo\ParkingDemo\bin\Debug\net48\ParkingDemo.gha
+C:\ParkingDemo\ParkingDemo\ParkingDemo\ParkingDemo\ParkingDemo\bin\Debug\net48\ParkingDemo.pdb
+C:\ParkingDemo\ParkingDemo\ParkingDemo\ParkingDemo\ParkingDemo\obj\Debug\net48\ParkingDemo.csproj.AssemblyReference.cache
+C:\ParkingDemo\ParkingDemo\ParkingDemo\ParkingDemo\ParkingDemo\obj\Debug\net48\ParkingDemo.GeneratedMSBuildEditorConfig.editorconfig
+C:\ParkingDemo\ParkingDemo\ParkingDemo\ParkingDemo\ParkingDemo\obj\Debug\net48\ParkingDemo.AssemblyInfoInputs.cache
+C:\ParkingDemo\ParkingDemo\ParkingDemo\ParkingDemo\ParkingDemo\obj\Debug\net48\ParkingDemo.AssemblyInfo.cs
+C:\ParkingDemo\ParkingDemo\ParkingDemo\ParkingDemo\ParkingDemo\obj\Debug\net48\ParkingDemo.csproj.CoreCompileInputs.cache
+C:\ParkingDemo\ParkingDemo\ParkingDemo\ParkingDemo\ParkingDemo\obj\Debug\net48\ParkingDemo.sourcelink.json
+C:\ParkingDemo\ParkingDemo\ParkingDemo\ParkingDemo\ParkingDemo\obj\Debug\net48\ParkingDemo.gha
+C:\ParkingDemo\ParkingDemo\ParkingDemo\ParkingDemo\ParkingDemo\obj\Debug\net48\ParkingDemo.pdb

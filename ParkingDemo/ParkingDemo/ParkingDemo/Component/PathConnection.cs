@@ -38,9 +38,10 @@ namespace ParkingDemo
             DA.GetData(3, ref m2);
             DA.GetData(4, ref mtx);
             bool ispathpossible ;
-            int[] p1 = new int[] { n1, m1 };
-            int[] p2 = new int[] {n2, m2 };
-            var lotgain = ParkingUtils.mainPathConnection.NBasedLotGain(p1, p2, mtx,out ispathpossible);
+            var parkingPath = new ParkingUtils.PathInfo.ParkingPath();
+            var p1 = new ParkingUtils.PathInfo.Cell(n1, m1, parkingPath);
+            var p2 = new ParkingUtils.PathInfo.Cell(n2, m2, parkingPath);
+            var lotgain = ParkingUtils.mainPathConnection.LotGain(p1, p2, mtx,false, out ispathpossible);
             DA.SetData(0, lotgain);
             DA.SetData(1, ispathpossible);
         }
