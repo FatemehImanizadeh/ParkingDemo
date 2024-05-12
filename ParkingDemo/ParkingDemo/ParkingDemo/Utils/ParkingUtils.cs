@@ -905,7 +905,7 @@ namespace ParkingDemo
                 {
                     row = row_;
                     col = col_;
-                    
+
                 }
                 public Cell() { }
                 public override string ToString()
@@ -940,89 +940,142 @@ namespace ParkingDemo
             // plan boundaries )>> then we set the ispathpvalid values to false and it is a filter to decide btw options to find available ones.
             public class PathConnection
             {
-                public static int MBasedLotGain(PathInfo.Cell c1, PathInfo.Cell c2, Matrix mtx, out bool ispathvalid)
+
+            }
+
+            public static void CreateConnectionPath(Matrix mtx, DataTree<Point3d> GridPts, List<PathInfo.ParkingPath> parkingpaths,
+                DataTree<Transform> cartrnsfrms, DataTree<Point3d> mainpathpts)
+            {
+                // in these 2 below for loops i want to choose all 2 posssible combinations in existing paths and check the shortest distance between each couple of paths finally i should take the best choice considering both distance and lotgain. 
+
+                for (int i = 0; i < parkingpaths.Count; i++)
                 {
-                    int mbasedgain = 0;
-                    ispathvalid = true;
-                    var mpathcell = new List<Cell>();
-                    var n1 = c1.row;
-                    var m1 = c1.col;
-                    var n2 = c2.row;
-                    var m2 = c2.col;
-                    var signn = 1;
-                    if (n1 != n2) signn = Math.Abs(n2 - n1) / (n2 - n1);//if the num of of
-                    //rows be the same then the result is division to zero so we assume the sign
-                    //is 1 and if they were not equal we calculate to avoid probable errors. 
-                    var signm = 1;
-                    if (m1 != m2) signn = Math.Abs(m2 - m1) / (m2 - m1);
-                    var allbridgepathptsnbased = new List<List<int>>();
-                    for (int i = 1; i < Math.Abs(n2 - n1) + 1; i++)
+                    for (int j = 0; j < parkingpaths.Count; j++)
                     {
-                        i *= signn;
-                        var newint = new List<int>();
-                        newint.Add(n1 + i);
-                        newint.Add(m1);
-                        allbridgepathptsnbased.Add(newint);
-                    }
-                    for (int j = 1; j < Math.Abs(m2 - m1); j++)
-                    {
-                        j *= signm;
-                        var newint2 = new List<int>();
-                        newint2.Add(n2);
-                        newint2.Add(m1 + j);
-                        allbridgepathptsnbased.Add(newint2);
-                    }
-                    for (int i = 1; i < Math.Abs(n2 - n1) + 1; i++)
-                    {
-                        i *= signn;
-                        if (mtx[n1 + i, m1] == 4 || mtx[n1 + i, m1] == 0) { ispathvalid = false; }// scince by default we asume that the path is possible but if there is a cell in the bridge paht which is for ramp we set the value to false }
-                        else
+                        var pathFirst = parkingpaths[i];
+                        var pathSecond = parkingpaths[j];
+                        var random1 = new Random();
+                        var random2 = new Random();
+                        var ran1 = random1.Next(pathFirst.cells.Count);
+                        var ran2 = random2.Next(pathSecond.cells.Count);
+                        var cellRan1 = pathFirst.cells[ran1];
+                        var cellRan2 = pathSecond.cells[ran2];
+                        //    bool isPossible ; 
+                        var lotGain =
+                            ParkingUtils.mainPathConnection.LotGain(cellRan1, cellRan2, mtx, true, out bool isPossible);
+                        if (lotGain >= 0)
                         {
-                            try
+                            int nbasedgain = 0;
+                            var n1 = cellRan1.row;
+                            var m1 = cellRan1.col;
+                            var n2 = cellRan2.row;
+                            var m2 = cellRan2.col;
+                            // var signn2 = ((m2 - m1) / Math.Abs(m2 - m1));
+                            var signn = (n2 - n1 >= 0) ? 1 : -1;
+                            var signm = (m2 - m1 >= 0) ? 1 : -1;
+                            var allBridgePathCells = new List<ParkingUtils.PathInfo.Cell>();
+                            if (n2 != n1)
                             {
-                                if (mtx[n1 + i, m1] == 2) mbasedgain--;
+                                for (int k = 1; k <= Math.Abs(n2 - n1); k++)
+                                {
+                                    var step = k;
+                                    step *= signn;
+                                    var newint = new int[2];
+                                    var row = n1 + step;
+                                    var col = m1;
+                                    allBridgePathCells.Add(new PathInfo.Cell(row, col));
+                                }
+                            }
+
+                            if (m2 != m1)
+                            {
+                                for (int k = 1; k < Math.Abs(m2 - m1); k++)
+                                {
+                                    var step = k;
+                                    step *= signm;
+                                    var newint2 = new int[2];
+                                    var row = n2;
+                                    var col = m1 + step;
+                                    allBridgePathCells.Add(new PathInfo.Cell(row, col));
+                                }
+                            }
+
+                            var parkingPathNew = new PathInfo().parkingpath;
+                            parkingpaths.Add(parkingPathNew);
+                            parkingPathNew.pathindex = parkingpaths.Count;
+                            foreach (var cell in allBridgePathCells)
+                            {
+                                foreach (var path in cartrnsfrms.Paths)
+                                {
+                                    if (path.Indices[1] == cell.row && path.Indices[2] == cell.col)
+                                    {
+                                        cartrnsfrms.RemovePath(path);
+                                    }
+
+                                    mtx[cell.row, cell.col] = 2;
+                                }
+
+                                mtx[cell.row, cell.col] = 3;
+                                var pathindex = parkingpaths.Count;
+                                var pathNewCell = new GH_Path(pathindex, cell.row, cell.col);
+                                mainpathpts.Add(new Point3d(GridPts.Branch(cell.row)[cell.col]), pathNewCell);
+                                parkingPathNew.cells.Add(cell);
                                 for (int k = -1; k < 2; k++)
                                     for (int t = -1; t < 2; t++)
                                     {
                                         if (Math.Abs(k) + Math.Abs(t) == 1)
                                         {
-                                            if (!allbridgepathptsnbased.Contains(new List<int>() { n1 + i + k, m1 + t }))
+                                            var rowNew = cell.row + k;
+                                            var colNew = cell.col + t;
+
+                                            var vplus = new Vector3d(0, 5, 0);
+                                            var vminus = new Vector3d(0, -5, 0);
+                                            var hplus = new Vector3d(5, 0, 0);
+                                            var hminus = new Vector3d(-5, 0, 0);
+                                            var vecbase = new Vector3d(new Point3d(GridPts.Branch(rowNew)[colNew]));
+                                            Transform rotation0 = new Transform(Transform.Rotation(-Math.PI / 2, Plane.WorldXY.Origin));
+                                            Transform rotation2 = new Transform(Transform.Rotation(Math.PI, Plane.WorldXY.Origin));
+                                            Transform rotation3 = new Transform(Transform.Rotation(Math.PI / 2, Plane.WorldXY.Origin));
+                                            Transform translation0 = new Transform(Transform.Translation(new Vector3d(vecbase + vplus)));//translation for neighbocell //number0.
+                                            Transform translation1 = new Transform(Transform.Translation(new Vector3d(vecbase + hminus)));
+                                            Transform translation2 = new Transform(Transform.Translation(new Vector3d(vecbase + hplus)));
+                                            Transform translation3 = new Transform(Transform.Translation(new Vector3d(vecbase + vminus)));
+                                            //scince some branches of m and n plus and minus one does not exist and the code gives out of range error so we can consider the
+                                            // center of our base cell and add the locatioan of neighbor cells vertically and horizontally based on their locatioan
+                                            // اینجا داریم میگیم که ایندکس مسیرهای اتصالی جدید یکی بیشتر از همه مسیرهای موجود فعلی میشه
+                                            var path0 = new GH_Path(pathindex, rowNew - 1, colNew);
+                                            var path1 = new GH_Path(pathindex, rowNew, colNew - 1);
+                                            var path2 = new GH_Path(pathindex, rowNew, colNew + 1);
+                                            var path3 = new GH_Path(pathindex, rowNew + 1, colNew);
+                                            switch (k)
                                             {
-                                                int value = (int)mtx[n1 + i + k, m1 + t];
-                                                switch (value)
-                                                {
-                                                    case 0:
-                                                        break;
-                                                    case 1:
-                                                        mbasedgain++;
-                                                        break;
-                                                    case 2:
-                                                        mbasedgain--;
-                                                        break;
-                                                    case 3:
-                                                        break;
-                                                }
+                                                case -1:
+                                                    cartrnsfrms.Add(new Transform(translation0 * rotation0), path0);
+                                                    break;
+                                                case 1:
+                                                    cartrnsfrms.Add(new Transform(translation3 * rotation3), path3);
+                                                    break;
                                             }
-                                            //here I check if the neighbor is path itself or is not in the plan we do consider nothing; if it is lot we subtract from lotgain value and if it is empty cell we add to the lotgain value
+
+                                            switch (t)
+                                            {
+                                                case -1:
+                                                    cartrnsfrms.Add(new Transform(translation1), path1);
+                                                    break;
+                                                case 1:
+                                                    cartrnsfrms.Add(new Transform(translation3 * rotation3), path3);
+                                                    break;
+                                            }
+
                                         }
                                     }
                             }
-                            catch { }
+                            break;
                         }
                     }
-                    return mbasedgain;
                 }
             }
-            public static void CreateConnectionPath(Matrix mtx, List<PathInfo.ParkingPath> parkingpaths, DataTree<Transform> cartrnsfrms, DataTree<Point3d> mainpathpts)
-            {
-                // in these 2 below for loops i want to choose all 2 posssible combinations in existing paths and check the shortest distance between each couple of paths finally i should take the best choice considering both distance and lotgain. 
-                for (int i = 0; i < parkingpaths.Count; i++)
-                {
-                    for (int j = 0; j < parkingpaths.Count; j++)
-                    {
-                    }
-                }
-            }
+
             public static int LotGain(ParkingUtils.PathInfo.Cell p1, ParkingUtils.PathInfo.Cell p2, Matrix mtx, bool RowBasedPath, out bool ispathpossible)
             {
                 // ispathpossible = true;// I set this parameter to check if there exists a cell
@@ -1040,7 +1093,7 @@ namespace ParkingDemo
                 var signn = (n2 - n1 >= 0) ? 1 : -1;
                 var signm = (m2 - m1 >= 0) ? 1 : -1;
                 var allbridgepathptsnbased = new int[10][];
-                 
+
                 if (RowBasedPath)
                 {
 
@@ -1324,287 +1377,287 @@ namespace ParkingDemo
             }
 
         }
-    
-   
-    public static void ConnectPaths(DataTree<Point3d> mainpathpts, Matrix mtx, int[] parkingstartcell, DataTree<int[]> pathptsloc, DataTree<Transform> cartrnsfrms)
-    {
-        // in the lower part of code we remove those paths that have only one element form the path of points and also we add a new data tree of path points which have the collection of all pathpts in single brancehs we need the additional part of the paths saved in the original data tree (n,m) since they are the address of our data in matrix and grid so we can apply other calculations on them.
-        for (int i = 0; i < pathptsloc.Paths.Count; i++)
-            for (int j = i + 1; j < pathptsloc.Paths.Count; j++)
-            {
-            }
-    }
-    public static int ManhatanDistance(int[] p1, int[] p2)
-    {
-        //to connect paths we should calculate the cells distance and make connection between cells that have shortest distance to make sure we omit least number of parking lots to get the paths all have an access way to the start cell which is the entrance cell to the parking and if we have ramp it is the ramp end cell either.
-        var distance = Math.Abs(p1[0] - p2[0]) + Math.Abs(p1[1] - p2[1]);
-        if (distance > 0) distance--;
-        return distance;
-    }
-    public static bool CellsAlignedHorizontal(int[] p1, int[] p2)
-    {
-        if (p1[0] == p2[0]) return true;
-        //they have similar n
-        else return false;
-    }
-    public static bool CellsAlignedVertical(int[] p1, int[] p2)
-    {
-        if (p1[1] == p2[1]) return true;
-        //they have similar m
-        else return false;
-    }
-    public static Curve outlinefromcells(DataTree<Rectangle3d> cells)
-    {
-        List<Curve> recs = new List<Curve>();
-        foreach (var b in cells.Branches)
-            foreach (var rec in b)
-            {
-                recs.Add(rec.ToNurbsCurve());
-            }
-        IEnumerable<Curve> recsnew = recs as IEnumerable<Curve>;
-        var outline = Curve.CreateBooleanUnion(recsnew, 0.01);
-        return outline[0];
-    }
-    public static DataTree<Rectangle3d> extracellfinder(Matrix mtx, DataTree<Rectangle3d> cells)
-    {
-        var extracells = new DataTree<Rectangle3d>();
-        for (int i = 0; i < mtx.RowCount; i++)
+
+
+        public static void ConnectPaths(DataTree<Point3d> mainpathpts, Matrix mtx, int[] parkingstartcell, DataTree<int[]> pathptsloc, DataTree<Transform> cartrnsfrms)
         {
-            for (int j = 0; j < mtx.ColumnCount; j++)
-            {
-                if (mtx[i, j] == 1)
+            // in the lower part of code we remove those paths that have only one element form the path of points and also we add a new data tree of path points which have the collection of all pathpts in single brancehs we need the additional part of the paths saved in the original data tree (n,m) since they are the address of our data in matrix and grid so we can apply other calculations on them.
+            for (int i = 0; i < pathptsloc.Paths.Count; i++)
+                for (int j = i + 1; j < pathptsloc.Paths.Count; j++)
                 {
-                    var path = new GH_Path(i, j);
-                    extracells.Add(cells.Branch(i, j)[0], path);
+                }
+        }
+        public static int ManhatanDistance(int[] p1, int[] p2)
+        {
+            //to connect paths we should calculate the cells distance and make connection between cells that have shortest distance to make sure we omit least number of parking lots to get the paths all have an access way to the start cell which is the entrance cell to the parking and if we have ramp it is the ramp end cell either.
+            var distance = Math.Abs(p1[0] - p2[0]) + Math.Abs(p1[1] - p2[1]);
+            if (distance > 0) distance--;
+            return distance;
+        }
+        public static bool CellsAlignedHorizontal(int[] p1, int[] p2)
+        {
+            if (p1[0] == p2[0]) return true;
+            //they have similar n
+            else return false;
+        }
+        public static bool CellsAlignedVertical(int[] p1, int[] p2)
+        {
+            if (p1[1] == p2[1]) return true;
+            //they have similar m
+            else return false;
+        }
+        public static Curve outlinefromcells(DataTree<Rectangle3d> cells)
+        {
+            List<Curve> recs = new List<Curve>();
+            foreach (var b in cells.Branches)
+                foreach (var rec in b)
+                {
+                    recs.Add(rec.ToNurbsCurve());
+                }
+            IEnumerable<Curve> recsnew = recs as IEnumerable<Curve>;
+            var outline = Curve.CreateBooleanUnion(recsnew, 0.01);
+            return outline[0];
+        }
+        public static DataTree<Rectangle3d> extracellfinder(Matrix mtx, DataTree<Rectangle3d> cells)
+        {
+            var extracells = new DataTree<Rectangle3d>();
+            for (int i = 0; i < mtx.RowCount; i++)
+            {
+                for (int j = 0; j < mtx.ColumnCount; j++)
+                {
+                    if (mtx[i, j] == 1)
+                    {
+                        var path = new GH_Path(i, j);
+                        extracells.Add(cells.Branch(i, j)[0], path);
+                    }
                 }
             }
+            return extracells;
         }
-        return extracells;
-    }
-    public static int emptycell(Matrix mtx)
-    {
-        int value = 0;
-        for (int i = 0; i < mtx.RowCount; i++)
+        public static int emptycell(Matrix mtx)
         {
-            for (int j = 0; j < mtx.ColumnCount; j++)
+            int value = 0;
+            for (int i = 0; i < mtx.RowCount; i++)
             {
-                if (mtx[i, j] == 1)
+                for (int j = 0; j < mtx.ColumnCount; j++)
                 {
-                    value++;
+                    if (mtx[i, j] == 1)
+                    {
+                        value++;
+                    }
                 }
             }
+            return value;
         }
-        return value;
-    }
-    /*public static DataTree<Rectangle3d> pathcellfinder(Matrix mtx, DataTree<Rectangle3d> cells)
-    {
-      var pathcells = new DataTree<Rectangle3d>();
-      for (int i = 0; i < mtx.RowCount; i++)
-      {
-        for (int j = 0; j < mtx.ColumnCount; j++)
+        /*public static DataTree<Rectangle3d> pathcellfinder(Matrix mtx, DataTree<Rectangle3d> cells)
         {
-          if (mtx[i, j] == 3)
+          var pathcells = new DataTree<Rectangle3d>();
+          for (int i = 0; i < mtx.RowCount; i++)
           {
-            var path = new GH_Path(i, j);
-            pathcells.Add(cells.Branch(i, j)[0], path);
+            for (int j = 0; j < mtx.ColumnCount; j++)
+            {
+              if (mtx[i, j] == 3)
+              {
+                var path = new GH_Path(i, j);
+                pathcells.Add(cells.Branch(i, j)[0], path);
+              }
+            }
           }
-        }
-      }
-      return pathcells;
-    }*/
-    public static DataTree<Point3d> columngridgenerator(Matrix mtx, DataTree<Rectangle3d> cells)
-    {
-        var xmax = mtx.ColumnCount * 5;
-        var ymax = mtx.RowCount * 5;
-        var pts = new DataTree<Point3d>();
-        for (int i = 0; i < mtx.RowCount; i++)
+          return pathcells;
+        }*/
+        public static DataTree<Point3d> columngridgenerator(Matrix mtx, DataTree<Rectangle3d> cells)
         {
-            for (int j = 0; j < mtx.ColumnCount; j++)
+            var xmax = mtx.ColumnCount * 5;
+            var ymax = mtx.RowCount * 5;
+            var pts = new DataTree<Point3d>();
+            for (int i = 0; i < mtx.RowCount; i++)
             {
-                if (mtx[i, j] == 1 | mtx[i, j] == 2)
+                for (int j = 0; j < mtx.ColumnCount; j++)
                 {
-                    for (int k = 0; k < 3; k++)
-                        for (int t = 0; t < 3; t++)
-                        {
-                            if (!pts.PathExists(i * 2 + k, j * 2 + t))
+                    if (mtx[i, j] == 1 | mtx[i, j] == 2)
+                    {
+                        for (int k = 0; k < 3; k++)
+                            for (int t = 0; t < 3; t++)
                             {
-                                var path = new GH_Path(i * 2 + k, j * 2 + t);
-                                pts.Add(new Point3d((5 * j + t * 2.5), ymax - (5 * i + k * 2.5), 0), path);
+                                if (!pts.PathExists(i * 2 + k, j * 2 + t))
+                                {
+                                    var path = new GH_Path(i * 2 + k, j * 2 + t);
+                                    pts.Add(new Point3d((5 * j + t * 2.5), ymax - (5 * i + k * 2.5), 0), path);
+                                }
                             }
-                        }
-                }
-                if (mtx[i, j] == 3)
-                {
-                    for (int k = 0; k < 3; k += 2)
-                        for (int t = 0; t < 3; t += 2)
-                        {
-                            if (!pts.PathExists(i * 2 + k, j * 2 + t))
+                    }
+                    if (mtx[i, j] == 3)
+                    {
+                        for (int k = 0; k < 3; k += 2)
+                            for (int t = 0; t < 3; t += 2)
                             {
-                                var path = new GH_Path(i * 2 + k, j * 2 + t);
-                                pts.Add(new Point3d((5 * j + t * 2.5), ymax - (5 * i + k * 2.5), 0), path);
+                                if (!pts.PathExists(i * 2 + k, j * 2 + t))
+                                {
+                                    var path = new GH_Path(i * 2 + k, j * 2 + t);
+                                    pts.Add(new Point3d((5 * j + t * 2.5), ymax - (5 * i + k * 2.5), 0), path);
+                                }
                             }
-                        }
+                    }
                 }
             }
+            return pts;
         }
-        return pts;
-    }
-    // in this class the inputs is the data tree of collection of points that a column in ligible to be located on them.
-    // the purpose is to create a matrix form them where each item of the matrix is 0 if there is no point located on the referenced path
-    // which we assess and is 1 if there is a point located in that direction which means we are ligible to place a column in that location
-    // in further steps the the structural elements positions should be calculated form this matrix.
-    public static Matrix colmatrix(DataTree<Point3d> pts, Matrix cellmtx)
-    {
-        Matrix mtx = new Matrix(cellmtx.RowCount * 2 + 1, cellmtx.ColumnCount * 2 + 1);
-        for (int i = 0; i < mtx.RowCount; i++)
-            for (int j = 0; j < mtx.ColumnCount; j++)
-            {
-                mtx[i, j] = 1;
-                if (pts.PathExists(i, j))
+        // in this class the inputs is the data tree of collection of points that a column in ligible to be located on them.
+        // the purpose is to create a matrix form them where each item of the matrix is 0 if there is no point located on the referenced path
+        // which we assess and is 1 if there is a point located in that direction which means we are ligible to place a column in that location
+        // in further steps the the structural elements positions should be calculated form this matrix.
+        public static Matrix colmatrix(DataTree<Point3d> pts, Matrix cellmtx)
+        {
+            Matrix mtx = new Matrix(cellmtx.RowCount * 2 + 1, cellmtx.ColumnCount * 2 + 1);
+            for (int i = 0; i < mtx.RowCount; i++)
+                for (int j = 0; j < mtx.ColumnCount; j++)
+                {
                     mtx[i, j] = 1;
-                else
-                    mtx[i, j] = 0;
-            }
-        return mtx;
-    }
-    public static DataTree<Point3d> colpts(Matrix colmtx, DataTree<Point3d> gridpts)
-    {
-        DataTree<Point3d> columnpts = new DataTree<Point3d>();
-        int rowran = 0;
-        int colran = 0;
-        bool i = true;
-        if (colmtx[rowran, colran] == 1) columnpts.Add(gridpts.Branch(rowran, colran)[0], new GH_Path(rowran, colran));
-        else
-            while (i)
+                    if (pts.PathExists(i, j))
+                        mtx[i, j] = 1;
+                    else
+                        mtx[i, j] = 0;
+                }
+            return mtx;
+        }
+        public static DataTree<Point3d> colpts(Matrix colmtx, DataTree<Point3d> gridpts)
+        {
+            DataTree<Point3d> columnpts = new DataTree<Point3d>();
+            int rowran = 0;
+            int colran = 0;
+            bool i = true;
+            if (colmtx[rowran, colran] == 1) columnpts.Add(gridpts.Branch(rowran, colran)[0], new GH_Path(rowran, colran));
+            else
+                while (i)
+                {
+                    Random ran = new Random();
+                    var next = ran.Next(1, 2);
+                    if (next == 1 && rowran < colmtx.RowCount) rowran += 1;
+                    if (next == 2 && colran < colmtx.ColumnCount) colran += 1;
+                    if (colmtx[rowran, colran] == 1) { columnpts.Add(gridpts.Branch(rowran, colran)[0], new GH_Path(rowran, colran)); i = false; break; }
+                }
+            columnpts.Add(gridpts.Branch(2, colran)[0], new GH_Path(rowran, colran));
+            return columnpts;
+        }
+        //این کلاس براساس نقاط اصللی مسیر عبور ماشین گرید در دو راستای افقی و عمودی لیستی از مختتصات را می‌دهد که امکان ستون‌‌گذاری روی آن‌ها
+        // را نداریم
+        public static void girdexception(List<Point3d> mainpathpts, out List<double> horizontalexceptoin, out List<double> verticalexception)
+        {
+            List<double> verexeption = new List<double>();
+            List<double> horexception = new List<double>();
+            for (int i = 0; i < mainpathpts.Count - 1; i++)
             {
-                Random ran = new Random();
-                var next = ran.Next(1, 2);
-                if (next == 1 && rowran < colmtx.RowCount) rowran += 1;
-                if (next == 2 && colran < colmtx.ColumnCount) colran += 1;
-                if (colmtx[rowran, colran] == 1) { columnpts.Add(gridpts.Branch(rowran, colran)[0], new GH_Path(rowran, colran)); i = false; break; }
+                if (mainpathpts[i].Y == mainpathpts[i + 1].Y)
+                {
+                    horexception.Add(mainpathpts[i].Y);
+                }
+                if (mainpathpts[i].X == mainpathpts[i + 1].X)
+                {
+                    verexeption.Add(mainpathpts[i].X);
+                }
             }
-        columnpts.Add(gridpts.Branch(2, colran)[0], new GH_Path(rowran, colran));
-        return columnpts;
-    }
-    //این کلاس براساس نقاط اصللی مسیر عبور ماشین گرید در دو راستای افقی و عمودی لیستی از مختتصات را می‌دهد که امکان ستون‌‌گذاری روی آن‌ها
-    // را نداریم
-    public static void girdexception(List<Point3d> mainpathpts, out List<double> horizontalexceptoin, out List<double> verticalexception)
-    {
-        List<double> verexeption = new List<double>();
-        List<double> horexception = new List<double>();
-        for (int i = 0; i < mainpathpts.Count - 1; i++)
+            horizontalexceptoin = horexception;
+            verticalexception = verexeption;
+        }
+        // در این کلاس لیست استثناهای افقی و عمودی برای  گرید وارد می‌شود. و محدوده ساختمان هم داده می‌شود بر اساس محدوده
+        //  گرید بندی در دو راستای افقی و عمودی با حذف مختصات داخل للیستهای استثنا تولید میشود. در خروجی هیچ گریدی از وسط مسیر  عبور نمیکند
+        public static List<List<double>> gridcoordinates(Curve crv, List<double> verticalexception, List<double> horizontalexcepton)
         {
-            if (mainpathpts[i].Y == mainpathpts[i + 1].Y)
+            var bbox = crv.GetBoundingBox(true);
+            var Xinterval = new Interval(0, bbox.Max.X - bbox.Min.X);
+            var Yinterval = new Interval(0, bbox.Max.Y - bbox.Min.Y);
+            List<double> verticalcoordinates = new List<double>();
+            List<double> horizontalcoordinares = new List<double>();
+            double X = 0;
+            while (X < Xinterval.T1)
             {
-                horexception.Add(mainpathpts[i].Y);
+                if (!verticalexception.Contains(X))
+                    verticalcoordinates.Add(X);
+                X += 2.5;
             }
-            if (mainpathpts[i].X == mainpathpts[i + 1].X)
+            double Y = 0;
+            while (Y < Yinterval.T1)
             {
-                verexeption.Add(mainpathpts[i].X);
+                if (!horizontalexcepton.Contains(Y))
+                    horizontalcoordinares.Add(Y);
+                Y += 2.5;
             }
+            var availablegridvalues = new List<List<double>>();
+            availablegridvalues.Add(horizontalcoordinares);
+            availablegridvalues.Add(verticalcoordinates);
+            return availablegridvalues;
         }
-        horizontalexceptoin = horexception;
-        verticalexception = verexeption;
-    }
-    // در این کلاس لیست استثناهای افقی و عمودی برای  گرید وارد می‌شود. و محدوده ساختمان هم داده می‌شود بر اساس محدوده
-    //  گرید بندی در دو راستای افقی و عمودی با حذف مختصات داخل للیستهای استثنا تولید میشود. در خروجی هیچ گریدی از وسط مسیر  عبور نمیکند
-    public static List<List<double>> gridcoordinates(Curve crv, List<double> verticalexception, List<double> horizontalexcepton)
-    {
-        var bbox = crv.GetBoundingBox(true);
-        var Xinterval = new Interval(0, bbox.Max.X - bbox.Min.X);
-        var Yinterval = new Interval(0, bbox.Max.Y - bbox.Min.Y);
-        List<double> verticalcoordinates = new List<double>();
-        List<double> horizontalcoordinares = new List<double>();
-        double X = 0;
-        while (X < Xinterval.T1)
+        //تو ای کلاس میخوام گوشه‌های کرو اوتلاینو بگیرم که بعد پردازششون کنم و
+        // ستونگذاری جوری باشه که حتما روی گوشه های پلان ستون داشته باشیم در هر حال
+        public static List<List<double>> outlinegridcoordinates(Curve outline)
         {
-            if (!verticalexception.Contains(X))
-                verticalcoordinates.Add(X);
-            X += 2.5;
-        }
-        double Y = 0;
-        while (Y < Yinterval.T1)
-        {
-            if (!horizontalexcepton.Contains(Y))
-                horizontalcoordinares.Add(Y);
-            Y += 2.5;
-        }
-        var availablegridvalues = new List<List<double>>();
-        availablegridvalues.Add(horizontalcoordinares);
-        availablegridvalues.Add(verticalcoordinates);
-        return availablegridvalues;
-    }
-    //تو ای کلاس میخوام گوشه‌های کرو اوتلاینو بگیرم که بعد پردازششون کنم و
-    // ستونگذاری جوری باشه که حتما روی گوشه های پلان ستون داشته باشیم در هر حال
-    public static List<List<double>> outlinegridcoordinates(Curve outline)
-    {
-        var corners = new List<Point3d>();
-        var pts = new Point3d[5];
-        var polyline = new Polyline();
-        double[] parameters;
-        outline.TryGetPolyline(out polyline, out parameters);
-        foreach (var t in parameters)
-            corners.Add(outline.PointAt(t));
-        List<double> listhorizontalcoordinates = new List<double>();
-        List<double> listverticalcoordinates = new List<double>();
-        for (int i = 0; i < corners.Count - 1; i++)
-        {
-            if (corners[i].X == corners[i + 1].X)
-                listverticalcoordinates.Add(corners[i].X);
-            if (corners[i].Y == corners[i + 1].Y)
-                listhorizontalcoordinates.Add(corners[i].Y);
-        }
-        var outlinegridcoord = new List<List<double>>();
-        listhorizontalcoordinates.Sort();
-        listverticalcoordinates.Sort();
-        outlinegridcoord.Add(listhorizontalcoordinates.Distinct().ToList());
-        outlinegridcoord.Add(listverticalcoordinates.Distinct().ToList());
-        return outlinegridcoord;
-    }
-    public static List<List<double>> gridgenerator(List<List<double>> gridcoordinates, List<List<double>> outlinegridcoords, double maxcoldistance, double preferreddistance)
-    {
-        var gridfinalcoords = new List<List<double>>();
-        var horizontalfinalcoords = new List<double>();
-        var verticalfinalcoords = new List<double>();
-        for (int i = 0; i < outlinegridcoords[0].Count - 1; i++)
-        {
-            // in this part to calcualte horizontal grid lines
-            if (outlinegridcoords[0][i + 1] - outlinegridcoords[0][i] > maxcoldistance)
+            var corners = new List<Point3d>();
+            var pts = new Point3d[5];
+            var polyline = new Polyline();
+            double[] parameters;
+            outline.TryGetPolyline(out polyline, out parameters);
+            foreach (var t in parameters)
+                corners.Add(outline.PointAt(t));
+            List<double> listhorizontalcoordinates = new List<double>();
+            List<double> listverticalcoordinates = new List<double>();
+            for (int i = 0; i < corners.Count - 1; i++)
             {
-                var num = Math.Round((outlinegridcoords[0][i + 1] - outlinegridcoords[0][i]) / preferreddistance);
-                var num2 = int.Parse(num.ToString());
-                if (num2 > 1) num2--;// here of we succeeded maximum distance and the rounded numberbut is 1 we should keep at least 1 number to add to the grid lines in the specified direction
-                                     //but if num is greater than 1 we may reduce the number by 1 since for example we want to divide the distance to 2 segments so we need 1 additional grid
-                var startlimit = outlinegridcoords[0][i];
-                var endlimit = outlinegridcoords[0][i + 1];
-                var random = new Random();
-                var resulthorizontal = gridcoordinates[0].Where(k => k > startlimit && k < endlimit).OrderBy(k => random.Next()).Take(num2).ToList();
-                horizontalfinalcoords.AddRange(resulthorizontal);
-                horizontalfinalcoords.Distinct().ToList().Sort();
+                if (corners[i].X == corners[i + 1].X)
+                    listverticalcoordinates.Add(corners[i].X);
+                if (corners[i].Y == corners[i + 1].Y)
+                    listhorizontalcoordinates.Add(corners[i].Y);
             }
+            var outlinegridcoord = new List<List<double>>();
+            listhorizontalcoordinates.Sort();
+            listverticalcoordinates.Sort();
+            outlinegridcoord.Add(listhorizontalcoordinates.Distinct().ToList());
+            outlinegridcoord.Add(listverticalcoordinates.Distinct().ToList());
+            return outlinegridcoord;
         }
-        horizontalfinalcoords.AddRange(outlinegridcoords[0]);
-        //in this part to calculate vertical grid lines
-        for (int i = 0; i < outlinegridcoords[1].Count - 1; i++)
+        public static List<List<double>> gridgenerator(List<List<double>> gridcoordinates, List<List<double>> outlinegridcoords, double maxcoldistance, double preferreddistance)
         {
-            if (outlinegridcoords[1][i + 1] - outlinegridcoords[1][i] > maxcoldistance)
+            var gridfinalcoords = new List<List<double>>();
+            var horizontalfinalcoords = new List<double>();
+            var verticalfinalcoords = new List<double>();
+            for (int i = 0; i < outlinegridcoords[0].Count - 1; i++)
             {
-                var num = Math.Round((outlinegridcoords[1][i + 1] - outlinegridcoords[1][i]) / preferreddistance);
-                var num2 = int.Parse(num.ToString());
-                if (num2 > 1) num2--;// here of we succeeded maximum distance and the rounded numberbut is 1 we should keep at least 1 number to add to the grid lines in the specified direction
-                                     //but if num is greater than 1 we may reduce the number by 1 since for example we want to divide the distance to 2 segments so we need 1 additional grid
-                var startlimit = outlinegridcoords[1][i];
-                var endlimit = outlinegridcoords[1][i + 1];
-                var random = new Random();
-                var resultvertical = gridcoordinates[1].Where(k => k > startlimit && k < endlimit).OrderBy(k => random.Next()).Take(num2).ToList();
-                verticalfinalcoords.AddRange(resultvertical);
-                verticalfinalcoords.Distinct().ToList().Sort();
+                // in this part to calcualte horizontal grid lines
+                if (outlinegridcoords[0][i + 1] - outlinegridcoords[0][i] > maxcoldistance)
+                {
+                    var num = Math.Round((outlinegridcoords[0][i + 1] - outlinegridcoords[0][i]) / preferreddistance);
+                    var num2 = int.Parse(num.ToString());
+                    if (num2 > 1) num2--;// here of we succeeded maximum distance and the rounded numberbut is 1 we should keep at least 1 number to add to the grid lines in the specified direction
+                                         //but if num is greater than 1 we may reduce the number by 1 since for example we want to divide the distance to 2 segments so we need 1 additional grid
+                    var startlimit = outlinegridcoords[0][i];
+                    var endlimit = outlinegridcoords[0][i + 1];
+                    var random = new Random();
+                    var resulthorizontal = gridcoordinates[0].Where(k => k > startlimit && k < endlimit).OrderBy(k => random.Next()).Take(num2).ToList();
+                    horizontalfinalcoords.AddRange(resulthorizontal);
+                    horizontalfinalcoords.Distinct().ToList().Sort();
+                }
             }
-            verticalfinalcoords.AddRange(outlinegridcoords[1]);
+            horizontalfinalcoords.AddRange(outlinegridcoords[0]);
+            //in this part to calculate vertical grid lines
+            for (int i = 0; i < outlinegridcoords[1].Count - 1; i++)
+            {
+                if (outlinegridcoords[1][i + 1] - outlinegridcoords[1][i] > maxcoldistance)
+                {
+                    var num = Math.Round((outlinegridcoords[1][i + 1] - outlinegridcoords[1][i]) / preferreddistance);
+                    var num2 = int.Parse(num.ToString());
+                    if (num2 > 1) num2--;// here of we succeeded maximum distance and the rounded numberbut is 1 we should keep at least 1 number to add to the grid lines in the specified direction
+                                         //but if num is greater than 1 we may reduce the number by 1 since for example we want to divide the distance to 2 segments so we need 1 additional grid
+                    var startlimit = outlinegridcoords[1][i];
+                    var endlimit = outlinegridcoords[1][i + 1];
+                    var random = new Random();
+                    var resultvertical = gridcoordinates[1].Where(k => k > startlimit && k < endlimit).OrderBy(k => random.Next()).Take(num2).ToList();
+                    verticalfinalcoords.AddRange(resultvertical);
+                    verticalfinalcoords.Distinct().ToList().Sort();
+                }
+                verticalfinalcoords.AddRange(outlinegridcoords[1]);
+            }
+            gridfinalcoords.Add(horizontalfinalcoords);
+            gridfinalcoords.Add(verticalfinalcoords);
+            return gridfinalcoords;
         }
-        gridfinalcoords.Add(horizontalfinalcoords);
-        gridfinalcoords.Add(verticalfinalcoords);
-        return gridfinalcoords;
     }
-}
 }
