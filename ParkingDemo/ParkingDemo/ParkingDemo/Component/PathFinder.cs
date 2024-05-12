@@ -88,7 +88,7 @@ namespace ParkingDemo
                 iteration++;
                 ParkingUtils.pathfinder(plantomatrix, firstpathcell, grid, ref cartransforms, mainpathpts, ref pathindex, ref currentpathitemcount, pathptsloc, ref startcellfindingattemt, ref parkingpaths);
             }
-
+          //  ParkingUtils.mainPathConnection.CreateConnectionPath(plantomatrix, grid, parkingpaths, cartransforms, mainpathpts);
            
             DA.SetDataTree(0, mainpathpts);
             DA.SetDataTree(1, cartransforms);
@@ -110,6 +110,10 @@ namespace ParkingDemo
                //    bool isPossible ; 
                    var lotGain =
                        ParkingUtils.mainPathConnection.LotGain(cellRan1, cellRan2, plantomatrix, true,  out bool isPossible);
+                   if (lotGain >= 0)
+                   {
+
+                   }
 
                 }
             }
