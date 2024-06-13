@@ -88,38 +88,19 @@ namespace ParkingDemo
                 iteration++;
                 ParkingUtils.pathfinder(plantomatrix, firstpathcell, grid, ref cartransforms, mainpathpts, ref pathindex, ref currentpathitemcount, pathptsloc, ref startcellfindingattemt, ref parkingpaths);
             }
-          //  ParkingUtils.mainPathConnection.CreateConnectionPath(plantomatrix, grid, parkingpaths, cartransforms, mainpathpts);
-           
+            DA.SetDataTree(0, mainpathpts);
+            DA.SetDataTree(1, cartransforms);
+            DA.SetDataList(2, parkingpaths);
+            DA.SetData(3, plantomatrix);
+          //ParkingUtils.mainPathConnection.CreateConnectionPath(plantomatrix, grid, parkingpaths, cartransforms, mainpathpts);
             DA.SetDataTree(0, mainpathpts);
             DA.SetDataTree(1, cartransforms);
             DA.SetDataList(2, parkingpaths);
             DA.SetData(3, plantomatrix);
 
-            for (int i = 0; i < parkingpaths.Count; i++)
-            {
-                for (int j = i; j < parkingpaths.Count; j++)
-                {
-                    var path1 = parkingpaths[i];
-                    var path2 = parkingpaths[j];
-                    var random1 = new Random(); 
-                    var random2 = new Random();
-                   var ran1 = random1.Next(path1.cells.Count);
-                   var ran2 = random2.Next(path2.cells.Count);
-                   var cellRan1 = path1.cells[ran1]; 
-                   var cellRan2 = path2.cells[ran2];
-               //    bool isPossible ; 
-                   var lotGain =
-                       ParkingUtils.mainPathConnection.LotGain(cellRan1, cellRan2, plantomatrix, true,  out bool isPossible);
-                   if (lotGain >= 0)
-                   {
-
-                   }
-
-                }
-            }
-
 
         }
+
 
         protected override System.Drawing.Bitmap Icon => null;//Resources.connection1_;
         public override Guid ComponentGuid

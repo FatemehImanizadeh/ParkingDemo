@@ -3,19 +3,16 @@
   "WorkspaceRootPath": "C:\\ParkingDemo\\ParkingDemo\\ParkingDemo\\ParkingDemo\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{5D25371B-6F8D-46CA-8A6A-1D46257E7205}|ParkingDemo\\ParkingDemo.csproj|c:\\parkingdemo\\parkingdemo\\parkingdemo\\parkingdemo\\parkingdemo\\utils\\parkingutils.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{5D25371B-6F8D-46CA-8A6A-1D46257E7205}|ParkingDemo\\ParkingDemo.csproj|solutionrelative:parkingdemo\\utils\\parkingutils.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{5D25371B-6F8D-46CA-8A6A-1D46257E7205}|ParkingDemo\\ParkingDemo.csproj|C:\\ParkingDemo\\ParkingDemo\\ParkingDemo\\ParkingDemo\\parkingdemo\\component\\pathfinder.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{5D25371B-6F8D-46CA-8A6A-1D46257E7205}|ParkingDemo\\ParkingDemo.csproj|solutionrelative:parkingdemo\\component\\pathfinder.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{5D25371B-6F8D-46CA-8A6A-1D46257E7205}|ParkingDemo\\ParkingDemo.csproj|C:\\ParkingDemo\\ParkingDemo\\ParkingDemo\\ParkingDemo\\parkingdemo\\component\\pathconnection.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{5D25371B-6F8D-46CA-8A6A-1D46257E7205}|ParkingDemo\\ParkingDemo.csproj|solutionrelative:parkingdemo\\component\\pathconnection.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\fateme\\AppData\\Local\\SourceServer\\06e2d50c4885de8ae07e587a42863e90862929d1176745352d400038c0a371b3\\ParkingDemo\\ParkingDemo\\ParkingDemo\\Utils\\ParkingUtils.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{5D25371B-6F8D-46CA-8A6A-1D46257E7205}|ParkingDemo\\ParkingDemo.csproj|c:\\parkingdemo\\parkingdemo\\parkingdemo\\parkingdemo\\parkingdemo\\utils\\parkingutils.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{5D25371B-6F8D-46CA-8A6A-1D46257E7205}|ParkingDemo\\ParkingDemo.csproj|solutionrelative:parkingdemo\\utils\\parkingutils.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -25,59 +22,44 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 0,
+          "SelectedChildIndex": 1,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 1,
               "Title": "PathFinder.cs",
               "DocumentMoniker": "C:\\ParkingDemo\\ParkingDemo\\ParkingDemo\\ParkingDemo\\ParkingDemo\\Component\\PathFinder.cs",
               "RelativeDocumentMoniker": "ParkingDemo\\Component\\PathFinder.cs",
               "ToolTip": "C:\\ParkingDemo\\ParkingDemo\\ParkingDemo\\ParkingDemo\\ParkingDemo\\Component\\PathFinder.cs",
               "RelativeToolTip": "ParkingDemo\\Component\\PathFinder.cs",
-              "ViewState": "AQIAAE0AAAAAAAAAAAAYwG8AAAB9AAAA",
+              "ViewState": "AQIAAEIAAAAAAAAAAAASwGMAAAAAAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-05-04T09:26:04.579Z",
-              "EditorCaption": ""
+              "WhenOpened": "2024-05-04T09:26:04.579Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "ParkingUtils.cs",
-              "DocumentMoniker": "C:\\Users\\fateme\\AppData\\Local\\SourceServer\\06e2d50c4885de8ae07e587a42863e90862929d1176745352d400038c0a371b3\\ParkingDemo\\ParkingDemo\\ParkingDemo\\Utils\\ParkingUtils.cs",
-              "RelativeDocumentMoniker": "..\\..\\..\\..\\Users\\fateme\\AppData\\Local\\SourceServer\\06e2d50c4885de8ae07e587a42863e90862929d1176745352d400038c0a371b3\\ParkingDemo\\ParkingDemo\\ParkingDemo\\Utils\\ParkingUtils.cs",
-              "ToolTip": "C:\\Users\\fateme\\AppData\\Local\\SourceServer\\06e2d50c4885de8ae07e587a42863e90862929d1176745352d400038c0a371b3\\ParkingDemo\\ParkingDemo\\ParkingDemo\\Utils\\ParkingUtils.cs",
-              "RelativeToolTip": "..\\..\\..\\..\\Users\\fateme\\AppData\\Local\\SourceServer\\06e2d50c4885de8ae07e587a42863e90862929d1176745352d400038c0a371b3\\ParkingDemo\\ParkingDemo\\ParkingDemo\\Utils\\ParkingUtils.cs",
-              "ViewState": "AQIAAJ8CAAAAAAAAAAAAAMMCAAAZAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-05-04T07:51:48.557Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 0,
               "Title": "ParkingUtils.cs",
               "DocumentMoniker": "C:\\ParkingDemo\\ParkingDemo\\ParkingDemo\\ParkingDemo\\ParkingDemo\\Utils\\ParkingUtils.cs",
               "RelativeDocumentMoniker": "ParkingDemo\\Utils\\ParkingUtils.cs",
               "ToolTip": "C:\\ParkingDemo\\ParkingDemo\\ParkingDemo\\ParkingDemo\\ParkingDemo\\Utils\\ParkingUtils.cs",
               "RelativeToolTip": "ParkingDemo\\Utils\\ParkingUtils.cs",
-              "ViewState": "AQIAAO0DAAAAAAAAAAAYwAwEAAAgAAAA",
+              "ViewState": "AQIAAPIEAAAAAAAAAAAgwAkFAAAAAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2024-05-04T07:28:00.447Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 2,
               "Title": "PathConnection.cs",
               "DocumentMoniker": "C:\\ParkingDemo\\ParkingDemo\\ParkingDemo\\ParkingDemo\\ParkingDemo\\Component\\PathConnection.cs",
               "RelativeDocumentMoniker": "ParkingDemo\\Component\\PathConnection.cs",
               "ToolTip": "C:\\ParkingDemo\\ParkingDemo\\ParkingDemo\\ParkingDemo\\ParkingDemo\\Component\\PathConnection.cs",
               "RelativeToolTip": "ParkingDemo\\Component\\PathConnection.cs",
-              "ViewState": "AQIAABAAAAAAAAAAAAAgwCsAAAA9AAAA",
+              "ViewState": "AQIAACAAAAAAAAAAAAAowCsAAAA9AAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-05-04T07:35:18.398Z",
-              "EditorCaption": ""
+              "WhenOpened": "2024-05-04T07:35:18.398Z"
             }
           ]
         }

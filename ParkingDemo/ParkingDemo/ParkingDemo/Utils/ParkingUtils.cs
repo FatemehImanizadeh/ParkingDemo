@@ -965,7 +965,6 @@ namespace ParkingDemo
                             ParkingUtils.mainPathConnection.LotGain(cellRan1, cellRan2, mtx, true, out bool isPossible);
                         if (lotGain >= 0)
                         {
-                            int nbasedgain = 0;
                             var n1 = cellRan1.row;
                             var m1 = cellRan1.col;
                             var n2 = cellRan2.row;
@@ -986,7 +985,6 @@ namespace ParkingDemo
                                     allBridgePathCells.Add(new PathInfo.Cell(row, col));
                                 }
                             }
-
                             if (m2 != m1)
                             {
                                 for (int k = 1; k < Math.Abs(m2 - m1); k++)
@@ -999,8 +997,7 @@ namespace ParkingDemo
                                     allBridgePathCells.Add(new PathInfo.Cell(row, col));
                                 }
                             }
-
-                            var parkingPathNew = new PathInfo().parkingpath;
+                            var parkingPathNew = new PathInfo.ParkingPath();
                             parkingpaths.Add(parkingPathNew);
                             parkingPathNew.pathindex = parkingpaths.Count;
                             foreach (var cell in allBridgePathCells)
@@ -1011,15 +1008,13 @@ namespace ParkingDemo
                                     {
                                         cartrnsfrms.RemovePath(path);
                                     }
-
                                     mtx[cell.row, cell.col] = 2;
                                 }
-
                                 mtx[cell.row, cell.col] = 3;
                                 var pathindex = parkingpaths.Count;
                                 var pathNewCell = new GH_Path(pathindex, cell.row, cell.col);
                                 mainpathpts.Add(new Point3d(GridPts.Branch(cell.row)[cell.col]), pathNewCell);
-                                parkingPathNew.cells.Add(cell);
+                             // parkingPathNew.cells.Add(cell);
                                 for (int k = -1; k < 2; k++)
                                     for (int t = -1; t < 2; t++)
                                     {
