@@ -1,18 +1,38 @@
 {
   "Version": 1,
-  "WorkspaceRootPath": "C:\\ParkingDemo\\ParkingDemo\\ParkingDemo\\ParkingDemo\\",
+  "WorkspaceRootPath": "C:\\ParkingDemo\\ParkingDemo\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{5D25371B-6F8D-46CA-8A6A-1D46257E7205}|ParkingDemo\\ParkingDemo.csproj|c:\\parkingdemo\\parkingdemo\\parkingdemo\\parkingdemo\\parkingdemo\\utils\\parkingutils.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{5D25371B-6F8D-46CA-8A6A-1D46257E7205}|ParkingDemo\\ParkingDemo.csproj|c:\\parkingdemo\\parkingdemo\\parkingdemo\\utils\\parkingutils.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{5D25371B-6F8D-46CA-8A6A-1D46257E7205}|ParkingDemo\\ParkingDemo.csproj|solutionrelative:parkingdemo\\utils\\parkingutils.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{5D25371B-6F8D-46CA-8A6A-1D46257E7205}|ParkingDemo\\ParkingDemo.csproj|C:\\ParkingDemo\\ParkingDemo\\ParkingDemo\\ParkingDemo\\parkingdemo\\component\\pathfinder.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{5D25371B-6F8D-46CA-8A6A-1D46257E7205}|ParkingDemo\\ParkingDemo.csproj|C:\\ParkingDemo\\ParkingDemo\\parkingdemo\\component\\pathfinder.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{5D25371B-6F8D-46CA-8A6A-1D46257E7205}|ParkingDemo\\ParkingDemo.csproj|solutionrelative:parkingdemo\\component\\pathfinder.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{5D25371B-6F8D-46CA-8A6A-1D46257E7205}|ParkingDemo\\ParkingDemo.csproj|C:\\ParkingDemo\\ParkingDemo\\ParkingDemo\\ParkingDemo\\parkingdemo\\component\\pathconnection.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{5D25371B-6F8D-46CA-8A6A-1D46257E7205}|ParkingDemo\\ParkingDemo.csproj|c:\\parkingdemo\\parkingdemo\\parkingdemo\\component\\parkingpathstest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{5D25371B-6F8D-46CA-8A6A-1D46257E7205}|ParkingDemo\\ParkingDemo.csproj|solutionrelative:parkingdemo\\component\\parkingpathstest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{5D25371B-6F8D-46CA-8A6A-1D46257E7205}|ParkingDemo\\ParkingDemo.csproj|C:\\ParkingDemo\\ParkingDemo\\parkingdemo\\component\\pathconnection.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{5D25371B-6F8D-46CA-8A6A-1D46257E7205}|ParkingDemo\\ParkingDemo.csproj|solutionrelative:parkingdemo\\component\\pathconnection.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{5D25371B-6F8D-46CA-8A6A-1D46257E7205}|ParkingDemo\\ParkingDemo.csproj|c:\\parkingdemo\\parkingdemo\\parkingdemo\\parkingdemoinfo.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{5D25371B-6F8D-46CA-8A6A-1D46257E7205}|ParkingDemo\\ParkingDemo.csproj|solutionrelative:parkingdemo\\parkingdemoinfo.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{5D25371B-6F8D-46CA-8A6A-1D46257E7205}|ParkingDemo\\ParkingDemo.csproj|C:\\ParkingDemo\\ParkingDemo\\parkingdemo\\utils\\parkingpreview.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{5D25371B-6F8D-46CA-8A6A-1D46257E7205}|ParkingDemo\\ParkingDemo.csproj|solutionrelative:parkingdemo\\utils\\parkingpreview.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{5D25371B-6F8D-46CA-8A6A-1D46257E7205}|ParkingDemo\\ParkingDemo.csproj|c:\\parkingdemo\\parkingdemo\\parkingdemo\\component\\preview\\printresult.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{5D25371B-6F8D-46CA-8A6A-1D46257E7205}|ParkingDemo\\ParkingDemo.csproj|solutionrelative:parkingdemo\\component\\preview\\printresult.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{5D25371B-6F8D-46CA-8A6A-1D46257E7205}|ParkingDemo\\ParkingDemo.csproj|c:\\parkingdemo\\parkingdemo\\parkingdemo\\component\\creategridandramp.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{5D25371B-6F8D-46CA-8A6A-1D46257E7205}|ParkingDemo\\ParkingDemo.csproj|solutionrelative:parkingdemo\\component\\creategridandramp.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -22,44 +42,111 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 1,
+          "SelectedChildIndex": 6,
           "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "ParkingDemoInfo.cs",
+              "DocumentMoniker": "C:\\ParkingDemo\\ParkingDemo\\ParkingDemo\\ParkingDemoInfo.cs",
+              "RelativeDocumentMoniker": "ParkingDemo\\ParkingDemoInfo.cs",
+              "ToolTip": "C:\\ParkingDemo\\ParkingDemo\\ParkingDemo\\ParkingDemoInfo.cs",
+              "RelativeToolTip": "ParkingDemo\\ParkingDemoInfo.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-06-29T12:26:29.232Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "ParkingPathsTest.cs",
+              "DocumentMoniker": "C:\\ParkingDemo\\ParkingDemo\\ParkingDemo\\Component\\ParkingPathsTest.cs",
+              "RelativeDocumentMoniker": "ParkingDemo\\Component\\ParkingPathsTest.cs",
+              "ToolTip": "C:\\ParkingDemo\\ParkingDemo\\ParkingDemo\\Component\\ParkingPathsTest.cs",
+              "RelativeToolTip": "ParkingDemo\\Component\\ParkingPathsTest.cs",
+              "ViewState": "AQIAAAwAAAAAAAAAAAAjwB0AAABAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-06-29T12:26:06.029Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "CreateGridAndRamp.cs",
+              "DocumentMoniker": "C:\\ParkingDemo\\ParkingDemo\\ParkingDemo\\Component\\CreateGridAndRamp.cs",
+              "RelativeDocumentMoniker": "ParkingDemo\\Component\\CreateGridAndRamp.cs",
+              "ToolTip": "C:\\ParkingDemo\\ParkingDemo\\ParkingDemo\\Component\\CreateGridAndRamp.cs",
+              "RelativeToolTip": "ParkingDemo\\Component\\CreateGridAndRamp.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-06-29T11:01:00.108Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "PrintResult.cs",
+              "DocumentMoniker": "C:\\ParkingDemo\\ParkingDemo\\ParkingDemo\\Component\\Preview\\PrintResult.cs",
+              "RelativeDocumentMoniker": "ParkingDemo\\Component\\Preview\\PrintResult.cs",
+              "ToolTip": "C:\\ParkingDemo\\ParkingDemo\\ParkingDemo\\Component\\Preview\\PrintResult.cs",
+              "RelativeToolTip": "ParkingDemo\\Component\\Preview\\PrintResult.cs",
+              "ViewState": "AQIAAAYAAAAAAAAAAAAAACkAAAAgAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-06-29T10:29:06.32Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "ParkingPreview.cs",
+              "DocumentMoniker": "C:\\ParkingDemo\\ParkingDemo\\ParkingDemo\\Utils\\ParkingPreview.cs",
+              "RelativeDocumentMoniker": "ParkingDemo\\Utils\\ParkingPreview.cs",
+              "ToolTip": "C:\\ParkingDemo\\ParkingDemo\\ParkingDemo\\Utils\\ParkingPreview.cs",
+              "RelativeToolTip": "ParkingDemo\\Utils\\ParkingPreview.cs",
+              "ViewState": "AQIAAA0AAAAAAAAAAADwvyIAAAANAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-06-23T14:52:14.234Z",
+              "EditorCaption": ""
+            },
             {
               "$type": "Document",
               "DocumentIndex": 1,
               "Title": "PathFinder.cs",
-              "DocumentMoniker": "C:\\ParkingDemo\\ParkingDemo\\ParkingDemo\\ParkingDemo\\ParkingDemo\\Component\\PathFinder.cs",
+              "DocumentMoniker": "C:\\ParkingDemo\\ParkingDemo\\ParkingDemo\\Component\\PathFinder.cs",
               "RelativeDocumentMoniker": "ParkingDemo\\Component\\PathFinder.cs",
-              "ToolTip": "C:\\ParkingDemo\\ParkingDemo\\ParkingDemo\\ParkingDemo\\ParkingDemo\\Component\\PathFinder.cs",
+              "ToolTip": "C:\\ParkingDemo\\ParkingDemo\\ParkingDemo\\Component\\PathFinder.cs",
               "RelativeToolTip": "ParkingDemo\\Component\\PathFinder.cs",
-              "ViewState": "AQIAAEIAAAAAAAAAAAASwGMAAAAAAAAA",
+              "ViewState": "AQIAAEcAAAAAAAAAAAAiwFoAAAAuAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-05-04T09:26:04.579Z"
+              "WhenOpened": "2024-05-04T09:26:04.579Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 0,
               "Title": "ParkingUtils.cs",
-              "DocumentMoniker": "C:\\ParkingDemo\\ParkingDemo\\ParkingDemo\\ParkingDemo\\ParkingDemo\\Utils\\ParkingUtils.cs",
+              "DocumentMoniker": "C:\\ParkingDemo\\ParkingDemo\\ParkingDemo\\Utils\\ParkingUtils.cs",
               "RelativeDocumentMoniker": "ParkingDemo\\Utils\\ParkingUtils.cs",
-              "ToolTip": "C:\\ParkingDemo\\ParkingDemo\\ParkingDemo\\ParkingDemo\\ParkingDemo\\Utils\\ParkingUtils.cs",
+              "ToolTip": "C:\\ParkingDemo\\ParkingDemo\\ParkingDemo\\Utils\\ParkingUtils.cs",
               "RelativeToolTip": "ParkingDemo\\Utils\\ParkingUtils.cs",
-              "ViewState": "AQIAAPIEAAAAAAAAAAAgwAkFAAAAAAAA",
+              "ViewState": "AQIAANMDAAAAAAAAAAAiwBsEAAB8AAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2024-05-04T07:28:00.447Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 3,
               "Title": "PathConnection.cs",
-              "DocumentMoniker": "C:\\ParkingDemo\\ParkingDemo\\ParkingDemo\\ParkingDemo\\ParkingDemo\\Component\\PathConnection.cs",
+              "DocumentMoniker": "C:\\ParkingDemo\\ParkingDemo\\ParkingDemo\\Component\\PathConnection.cs",
               "RelativeDocumentMoniker": "ParkingDemo\\Component\\PathConnection.cs",
-              "ToolTip": "C:\\ParkingDemo\\ParkingDemo\\ParkingDemo\\ParkingDemo\\ParkingDemo\\Component\\PathConnection.cs",
+              "ToolTip": "C:\\ParkingDemo\\ParkingDemo\\ParkingDemo\\Component\\PathConnection.cs",
               "RelativeToolTip": "ParkingDemo\\Component\\PathConnection.cs",
-              "ViewState": "AQIAACAAAAAAAAAAAAAowCsAAAA9AAAA",
+              "ViewState": "AQIAABgAAAAAAAAAAAAQwDAAAAAqAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-05-04T07:35:18.398Z"
+              "WhenOpened": "2024-05-04T07:35:18.398Z",
+              "EditorCaption": ""
             }
           ]
         }

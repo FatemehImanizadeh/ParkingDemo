@@ -1,24 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "C:\\ParkingDemo\\ParkingDemo\\ParkingDemo\\ParkingDemo.csproj": {}
+    "C:\\ParkingDemo\\parkingdemo\\ParkingDemo\\ParkingDemo.csproj": {}
   },
   "projects": {
-    "C:\\ParkingDemo\\ParkingDemo\\ParkingDemo\\ParkingDemo.csproj": {
+    "C:\\ParkingDemo\\parkingdemo\\ParkingDemo\\ParkingDemo.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\ParkingDemo\\ParkingDemo\\ParkingDemo\\ParkingDemo.csproj",
+        "projectUniqueName": "C:\\ParkingDemo\\parkingdemo\\ParkingDemo\\ParkingDemo.csproj",
         "projectName": "ParkingDemo",
-        "projectPath": "C:\\ParkingDemo\\ParkingDemo\\ParkingDemo\\ParkingDemo.csproj",
-        "packagesPath": "C:\\Users\\Fateme\\.nuget\\packages\\",
-        "outputPath": "C:\\ParkingDemo\\ParkingDemo\\ParkingDemo\\obj\\",
+        "projectPath": "C:\\ParkingDemo\\parkingdemo\\ParkingDemo\\ParkingDemo.csproj",
+        "packagesPath": "C:\\Users\\fateme\\.nuget\\packages\\",
+        "outputPath": "C:\\ParkingDemo\\parkingdemo\\ParkingDemo\\obj\\",
         "projectStyle": "PackageReference",
-        "fallbackFolders": [
-          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
-        ],
         "configFilePaths": [
-          "C:\\Users\\Fateme\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Users\\fateme\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
@@ -38,6 +34,11 @@
           "warnAsError": [
             "NU1605"
           ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
         }
       },
       "frameworks": {
@@ -50,7 +51,7 @@
               "version": "[7.13.21348.13001, )"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.203\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.200\\RuntimeIdentifierGraph.json"
         }
       }
     }

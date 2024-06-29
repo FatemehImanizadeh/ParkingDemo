@@ -26,3 +26,4 @@ C:\ParkingDemo\ParkingDemo\ParkingDemo\ParkingDemo\ParkingDemo\obj\Debug\net48\P
 C:\ParkingDemo\ParkingDemo\ParkingDemo\ParkingDemo\ParkingDemo\obj\Debug\net48\ParkingDemo.sourcelink.json
 C:\ParkingDemo\ParkingDemo\ParkingDemo\ParkingDemo\ParkingDemo\obj\Debug\net48\ParkingDemo.gha
 C:\ParkingDemo\ParkingDemo\ParkingDemo\ParkingDemo\ParkingDemo\obj\Debug\net48\ParkingDemo.pdb
+C:\ParkingDemo\ParkingDemo\ParkingDemo\obj\Debug\net48\ParkingDemo.sourcelink.json

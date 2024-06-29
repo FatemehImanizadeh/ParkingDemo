@@ -83,16 +83,12 @@ namespace ParkingDemo
             int iteration = 0;
             var ts = stopwatch.ElapsedMilliseconds.ToString();
             Debug.WriteLine(ts + "ms");
-            while (ParkingUtils.emptycell(plantomatrix) > Math.Max(cellscount / 10, 4) && iteration < 100 && startcellfindingattemt < 30)
+            while (ParkingUtils.emptycell(plantomatrix) > Math.Max(cellscount / 10, 4) && iteration <300 && startcellfindingattemt < 100)
             {
                 iteration++;
                 ParkingUtils.pathfinder(plantomatrix, firstpathcell, grid, ref cartransforms, mainpathpts, ref pathindex, ref currentpathitemcount, pathptsloc, ref startcellfindingattemt, ref parkingpaths);
             }
-            DA.SetDataTree(0, mainpathpts);
-            DA.SetDataTree(1, cartransforms);
-            DA.SetDataList(2, parkingpaths);
-            DA.SetData(3, plantomatrix);
-          //ParkingUtils.mainPathConnection.CreateConnectionPath(plantomatrix, grid, parkingpaths, cartransforms, mainpathpts);
+          ParkingUtils.mainPathConnection.CreateConnectionPath(plantomatrix, grid, parkingpaths, cartransforms, mainpathpts);
             DA.SetDataTree(0, mainpathpts);
             DA.SetDataTree(1, cartransforms);
             DA.SetDataList(2, parkingpaths);

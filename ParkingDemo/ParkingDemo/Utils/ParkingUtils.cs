@@ -856,12 +856,7 @@ namespace ParkingDemo
             public class ParkingPath
             {
                 //int type;
-                private List<Cell> _cells;
-                public List<Cell> cells
-                {
-                    get { return _cells; }
-                    set { _cells = value; }
-                }
+                public List<Cell> cells { get; set; }
                 private int _pathindex;//{ get { return _pathindex; } set { } }
                 public int pathindex { get { return _pathindex; } set { _pathindex = value; } }
                 private PathType _pathtype;//{ get { return _pathtype; } set { } }
@@ -878,11 +873,15 @@ namespace ParkingDemo
                 public ParkingPath() { }
                 public override string ToString()
                 {
+                    var cells = new ParkingPath().cells;
                     string str = "";
-                    for (int i = 0; i < cells.Count; i++)
+                    if (this.cells != null)
                     {
-                        string strnew = i.ToString() + ": " + cells[i].ToString();
-                        str += strnew;
+                        for (int i = 0; i < cells.Count; i++)
+                        {
+                            string strnew = i.ToString() + ": " + cells[i].ToString();
+                            str += strnew;
+                        }
                     }
                     return str;
                 }
@@ -940,134 +939,148 @@ namespace ParkingDemo
             // plan boundaries )>> then we set the ispathpvalid values to false and it is a filter to decide btw options to find available ones.
             public class PathConnection
             {
-
             }
 
             public static void CreateConnectionPath(Matrix mtx, DataTree<Point3d> GridPts, List<PathInfo.ParkingPath> parkingpaths,
                 DataTree<Transform> cartrnsfrms, DataTree<Point3d> mainpathpts)
             {
-                // in these 2 below for loops i want to choose all 2 posssible combinations in existing paths and check the shortest distance between each couple of paths finally i should take the best choice considering both distance and lotgain. 
-
+                // in these 2 below for loops i want to choose all 2 posssible combinations in existing paths and check the shortest distance between each couple of paths finally i should take the best choice considering both distance and lotgain.
+                var remomvingPaths = new List<GH_Path>();
                 for (int i = 0; i < parkingpaths.Count; i++)
                 {
                     for (int j = 0; j < parkingpaths.Count; j++)
                     {
                         var pathFirst = parkingpaths[i];
                         var pathSecond = parkingpaths[j];
-                        var random1 = new Random();
-                        var random2 = new Random();
-                        var ran1 = random1.Next(pathFirst.cells.Count);
-                        var ran2 = random2.Next(pathSecond.cells.Count);
-                        var cellRan1 = pathFirst.cells[ran1];
-                        var cellRan2 = pathSecond.cells[ran2];
-                        //    bool isPossible ; 
-                        var lotGain =
-                            ParkingUtils.mainPathConnection.LotGain(cellRan1, cellRan2, mtx, true, out bool isPossible);
-                        if (lotGain >= 0)
+                        if (pathFirst.cells != null && pathSecond.cells != null)
                         {
-                            var n1 = cellRan1.row;
-                            var m1 = cellRan1.col;
-                            var n2 = cellRan2.row;
-                            var m2 = cellRan2.col;
-                            // var signn2 = ((m2 - m1) / Math.Abs(m2 - m1));
-                            var signn = (n2 - n1 >= 0) ? 1 : -1;
-                            var signm = (m2 - m1 >= 0) ? 1 : -1;
-                            var allBridgePathCells = new List<ParkingUtils.PathInfo.Cell>();
-                            if (n2 != n1)
+                            if (pathFirst.cells.Count > 0 && pathSecond.cells.Count > 0)
                             {
-                                for (int k = 1; k <= Math.Abs(n2 - n1); k++)
+                                var random1 = new Random();
+                                var random2 = new Random();
+                                var ran1 = random1.Next(pathFirst.cells.Count);
+                                var ran2 = random2.Next(pathSecond.cells.Count);
+                                var cellRan1 = pathFirst.cells[ran1];
+                                var cellRan2 = pathSecond.cells[ran2];
+                                //    bool isPossible ; 
+                                var lotGain =
+                                    ParkingUtils.mainPathConnection.LotGain(cellRan1, cellRan2, mtx, true, out bool isPossible);
+                                if (lotGain >= 0)
                                 {
-                                    var step = k;
-                                    step *= signn;
-                                    var newint = new int[2];
-                                    var row = n1 + step;
-                                    var col = m1;
-                                    allBridgePathCells.Add(new PathInfo.Cell(row, col));
-                                }
-                            }
-                            if (m2 != m1)
-                            {
-                                for (int k = 1; k < Math.Abs(m2 - m1); k++)
-                                {
-                                    var step = k;
-                                    step *= signm;
-                                    var newint2 = new int[2];
-                                    var row = n2;
-                                    var col = m1 + step;
-                                    allBridgePathCells.Add(new PathInfo.Cell(row, col));
-                                }
-                            }
-                            var parkingPathNew = new PathInfo.ParkingPath();
-                            parkingpaths.Add(parkingPathNew);
-                            parkingPathNew.pathindex = parkingpaths.Count;
-                            foreach (var cell in allBridgePathCells)
-                            {
-                                foreach (var path in cartrnsfrms.Paths)
-                                {
-                                    if (path.Indices[1] == cell.row && path.Indices[2] == cell.col)
+                                    var n1 = cellRan1.row;
+                                    var m1 = cellRan1.col;
+                                    var n2 = cellRan2.row;
+                                    var m2 = cellRan2.col;
+                                    // var signn2 = ((m2 - m1) / Math.Abs(m2 - m1));
+                                    var signn = (n2 - n1 >= 0) ? 1 : -1;
+                                    var signm = (m2 - m1 >= 0) ? 1 : -1;
+                                    var allBridgePathCells = new List<ParkingUtils.PathInfo.Cell>();
+                                    if (n2 != n1)
                                     {
-                                        cartrnsfrms.RemovePath(path);
-                                    }
-                                    mtx[cell.row, cell.col] = 2;
-                                }
-                                mtx[cell.row, cell.col] = 3;
-                                var pathindex = parkingpaths.Count;
-                                var pathNewCell = new GH_Path(pathindex, cell.row, cell.col);
-                                mainpathpts.Add(new Point3d(GridPts.Branch(cell.row)[cell.col]), pathNewCell);
-                             // parkingPathNew.cells.Add(cell);
-                                for (int k = -1; k < 2; k++)
-                                    for (int t = -1; t < 2; t++)
-                                    {
-                                        if (Math.Abs(k) + Math.Abs(t) == 1)
+                                        for (int k = 1; k <= Math.Abs(n2 - n1); k++)
                                         {
-                                            var rowNew = cell.row + k;
-                                            var colNew = cell.col + t;
-
-                                            var vplus = new Vector3d(0, 5, 0);
-                                            var vminus = new Vector3d(0, -5, 0);
-                                            var hplus = new Vector3d(5, 0, 0);
-                                            var hminus = new Vector3d(-5, 0, 0);
-                                            var vecbase = new Vector3d(new Point3d(GridPts.Branch(rowNew)[colNew]));
-                                            Transform rotation0 = new Transform(Transform.Rotation(-Math.PI / 2, Plane.WorldXY.Origin));
-                                            Transform rotation2 = new Transform(Transform.Rotation(Math.PI, Plane.WorldXY.Origin));
-                                            Transform rotation3 = new Transform(Transform.Rotation(Math.PI / 2, Plane.WorldXY.Origin));
-                                            Transform translation0 = new Transform(Transform.Translation(new Vector3d(vecbase + vplus)));//translation for neighbocell //number0.
-                                            Transform translation1 = new Transform(Transform.Translation(new Vector3d(vecbase + hminus)));
-                                            Transform translation2 = new Transform(Transform.Translation(new Vector3d(vecbase + hplus)));
-                                            Transform translation3 = new Transform(Transform.Translation(new Vector3d(vecbase + vminus)));
-                                            //scince some branches of m and n plus and minus one does not exist and the code gives out of range error so we can consider the
-                                            // center of our base cell and add the locatioan of neighbor cells vertically and horizontally based on their locatioan
-                                            // اینجا داریم میگیم که ایندکس مسیرهای اتصالی جدید یکی بیشتر از همه مسیرهای موجود فعلی میشه
-                                            var path0 = new GH_Path(pathindex, rowNew - 1, colNew);
-                                            var path1 = new GH_Path(pathindex, rowNew, colNew - 1);
-                                            var path2 = new GH_Path(pathindex, rowNew, colNew + 1);
-                                            var path3 = new GH_Path(pathindex, rowNew + 1, colNew);
-                                            switch (k)
-                                            {
-                                                case -1:
-                                                    cartrnsfrms.Add(new Transform(translation0 * rotation0), path0);
-                                                    break;
-                                                case 1:
-                                                    cartrnsfrms.Add(new Transform(translation3 * rotation3), path3);
-                                                    break;
-                                            }
-
-                                            switch (t)
-                                            {
-                                                case -1:
-                                                    cartrnsfrms.Add(new Transform(translation1), path1);
-                                                    break;
-                                                case 1:
-                                                    cartrnsfrms.Add(new Transform(translation3 * rotation3), path3);
-                                                    break;
-                                            }
-
+                                            var step = k;
+                                            step *= signn;
+                                            var newint = new int[2];
+                                            var row = n1 + step;
+                                            var col = m1;
+                                            allBridgePathCells.Add(new PathInfo.Cell(row, col));
                                         }
                                     }
+                                    if (m2 != m1)
+                                    {
+                                        for (int k = 1; k < Math.Abs(m2 - m1); k++)
+                                        {
+                                            var step = k;
+                                            step *= signm;
+                                            var newint2 = new int[2];
+                                            var row = n2;
+                                            var col = m1 + step;
+                                            allBridgePathCells.Add(new PathInfo.Cell(row, col));
+                                        }
+                                    }
+                                    var parkingPathNew = new PathInfo.ParkingPath();
+                                    parkingpaths.Add(parkingPathNew);
+                                    parkingPathNew.pathindex = parkingpaths.Count;
+
+                                    foreach (var cell in allBridgePathCells)
+                                    {
+                                        foreach (var path in cartrnsfrms.Paths)
+                                        {
+                                            if (path.Indices[1] == cell.row && path.Indices[2] == cell.col)
+                                            {
+                                                // cartrnsfrms.RemovePath(path);
+                                                remomvingPaths.Add(path);
+                                            }
+                                            mtx[cell.row, cell.col] = 2;
+                                        }
+                                        mtx[cell.row, cell.col] = 3;
+                                        var pathindex = parkingpaths.Count;
+                                        var pathNewCell = new GH_Path(pathindex, cell.row, cell.col);
+                                        mainpathpts.Add(new Point3d(GridPts.Branch(cell.row)[cell.col]), pathNewCell);
+                                        // parkingPathNew.cells.Add(cell);
+                                        for (int k = -1; k < 2; k++)
+                                            for (int t = -1; t < 2; t++)
+                                            {
+                                                if (Math.Abs(k) + Math.Abs(t) == 1)
+                                                {
+                                                    var rowNew = cell.row + k;
+                                                    var colNew = cell.col + t;
+
+                                                    var vplus = new Vector3d(0, 5, 0);
+                                                    var vminus = new Vector3d(0, -5, 0);
+                                                    var hplus = new Vector3d(5, 0, 0);
+                                                    var hminus = new Vector3d(-5, 0, 0);
+                                                    var vecbase = new Vector3d(new Point3d(GridPts.Branch(rowNew)[colNew]));
+                                                    Transform rotation0 = new Transform(Transform.Rotation(-Math.PI / 2, Plane.WorldXY.Origin));
+                                                    Transform rotation2 = new Transform(Transform.Rotation(Math.PI, Plane.WorldXY.Origin));
+                                                    Transform rotation3 = new Transform(Transform.Rotation(Math.PI / 2, Plane.WorldXY.Origin));
+                                                    Transform translation0 = new Transform(Transform.Translation(new Vector3d(vecbase + vplus)));//translation for neighbocell //number0.
+                                                    Transform translation1 = new Transform(Transform.Translation(new Vector3d(vecbase + hminus)));
+                                                    Transform translation2 = new Transform(Transform.Translation(new Vector3d(vecbase + hplus)));
+                                                    Transform translation3 = new Transform(Transform.Translation(new Vector3d(vecbase + vminus)));
+                                                    //scince some branches of m and n plus and minus one does not exist and the code gives out of range error so we can consider the
+                                                    // center of our base cell and add the locatioan of neighbor cells vertically and horizontally based on their locatioan
+                                                    // اینجا داریم میگیم که ایندکس مسیرهای اتصالی جدید یکی بیشتر از همه مسیرهای موجود فعلی میشه
+                                                    var path0 = new GH_Path(pathindex, rowNew - 1, colNew);
+                                                    var path1 = new GH_Path(pathindex, rowNew, colNew - 1);
+                                                    var path2 = new GH_Path(pathindex, rowNew, colNew + 1);
+                                                    var path3 = new GH_Path(pathindex, rowNew + 1, colNew);
+                                                    switch (k)
+                                                    {
+                                                        case -1:
+                                                            cartrnsfrms.Add(new Transform(translation0 * rotation0), path0);
+                                                            break;
+                                                        case 1:
+                                                            cartrnsfrms.Add(new Transform(translation3 * rotation3), path3);
+                                                            break;
+                                                    }
+
+                                                    switch (t)
+                                                    {
+                                                        case -1:
+                                                            cartrnsfrms.Add(new Transform(translation1), path1);
+                                                            break;
+                                                        case 1:
+                                                            cartrnsfrms.Add(new Transform(translation3 * rotation3), path3);
+                                                            break;
+                                                    }
+
+                                                }
+                                            }
+                                    }
+
+                                 //   break;
+                                }
                             }
-                            break;
                         }
+
+
                     }
+                }
+                foreach (var path in remomvingPaths)
+                {
+                    cartrnsfrms.RemovePath(path);
                 }
             }
 
@@ -1287,7 +1300,6 @@ namespace ParkingDemo
                                                     {
                                                         containment = true;
                                                         break;
-
                                                     }
                                                 }
                                                 if (!containment)
@@ -1374,14 +1386,7 @@ namespace ParkingDemo
         }
 
 
-        public static void ConnectPaths(DataTree<Point3d> mainpathpts, Matrix mtx, int[] parkingstartcell, DataTree<int[]> pathptsloc, DataTree<Transform> cartrnsfrms)
-        {
-            // in the lower part of code we remove those paths that have only one element form the path of points and also we add a new data tree of path points which have the collection of all pathpts in single brancehs we need the additional part of the paths saved in the original data tree (n,m) since they are the address of our data in matrix and grid so we can apply other calculations on them.
-            for (int i = 0; i < pathptsloc.Paths.Count; i++)
-                for (int j = i + 1; j < pathptsloc.Paths.Count; j++)
-                {
-                }
-        }
+
         public static int ManhatanDistance(int[] p1, int[] p2)
         {
             //to connect paths we should calculate the cells distance and make connection between cells that have shortest distance to make sure we omit least number of parking lots to get the paths all have an access way to the start cell which is the entrance cell to the parking and if we have ramp it is the ramp end cell either.
