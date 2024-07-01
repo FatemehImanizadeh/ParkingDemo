@@ -1069,13 +1069,9 @@ namespace ParkingDemo
                                                 }
                                             }
                                     }
-
-                                 //   break;
                                 }
                             }
                         }
-
-
                     }
                 }
                 foreach (var path in remomvingPaths)
