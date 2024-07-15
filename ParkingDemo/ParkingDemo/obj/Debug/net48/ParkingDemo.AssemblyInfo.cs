@@ -15,7 +15,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyDescriptionAttribute("Description of ParkingDemo")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0+6aa79903c35c67bcb33c2fad3705c83ce9daf821")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0")]
 [assembly: System.Reflection.AssemblyProductAttribute("ParkingDemo")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ParkingDemo")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

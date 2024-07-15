@@ -1,5 +1,3 @@
 is_global = true
 build_property.RootNamespace = ParkingDemo
-build_property.ProjectDir = C:\ParkingDemo\parkingdemo\ParkingDemo\
-build_property.EnableComHosting = 
-build_property.EnableGeneratedComInterfaceComImportInterop = 
+build_property.ProjectDir = C:\ParkingDemo\ParkingDemo\ParkingDemo\

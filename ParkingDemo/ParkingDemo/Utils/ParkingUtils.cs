@@ -18,6 +18,7 @@ using Eto.Forms;
 using System.Diagnostics.Eventing.Reader;
 using Grasshopper.Kernel.Special;
 using Grasshopper.Kernel.Geometry.Voronoi;
+using static ParkingDemo.ParkingUtils.PathInfo;
 
 namespace ParkingDemo
 {
@@ -926,21 +927,11 @@ namespace ParkingDemo
         }
         public class mainPathConnection
         {
-            public enum pathbridgetype
-            {
-                nbased, mbased, alignedhorizontal, alignedvertical
-            }
-            bool IsNbasedPathValid;
-            bool IsMbasedPathValid;
-            bool IsHorizontalPathValid;
-            bool IsVerticalPathValid;
+            
             //here we set these boolean values to assign them in code methods. 
             // if the path is not valid>> (wheather there is a ramp cell in distance btw cells or there is a cell outside the 
             // plan boundaries )>> then we set the ispathpvalid values to false and it is a filter to decide btw options to find available ones.
-            public class PathConnection
-            {
-            }
-
+         
             public static void CreateConnectionPath(Matrix mtx, DataTree<Point3d> GridPts, List<PathInfo.ParkingPath> parkingpaths,
                 DataTree<Transform> cartrnsfrms, DataTree<Point3d> mainpathpts)
             {
@@ -1002,7 +993,6 @@ namespace ParkingDemo
                                     var parkingPathNew = new PathInfo.ParkingPath();
                                     parkingpaths.Add(parkingPathNew);
                                     parkingPathNew.pathindex = parkingpaths.Count;
-
                                     foreach (var cell in allBridgePathCells)
                                     {
                                         foreach (var path in cartrnsfrms.Paths)
@@ -1010,10 +1000,22 @@ namespace ParkingDemo
                                             if (path.Indices[1] == cell.row && path.Indices[2] == cell.col)
                                             {
                                                 // cartrnsfrms.RemovePath(path);
-                                                remomvingPaths.Add(path);
+                                                  remomvingPaths.Add(path);
+                                                break;
                                             }
-                                            mtx[cell.row, cell.col] = 2;
+                                            //mtx[cell.row, cell.col] = 2;
                                         }
+                                    }
+
+                                    
+                                        foreach (var path in remomvingPaths)
+                                        {
+                                                cartrnsfrms.RemovePath(path);
+                                                // remomvingPaths.Add(path);
+                                        }
+                                    
+                                    foreach (var cell in allBridgePathCells)
+                                    {
                                         mtx[cell.row, cell.col] = 3;
                                         var pathindex = parkingpaths.Count;
                                         var pathNewCell = new GH_Path(pathindex, cell.row, cell.col);
@@ -1024,8 +1026,8 @@ namespace ParkingDemo
                                             {
                                                 if (Math.Abs(k) + Math.Abs(t) == 1)
                                                 {
-                                                    var rowNew = cell.row + k;
-                                                    var colNew = cell.col + t;
+                                                    var rowNew = cell.row ;
+                                                    var colNew = cell.col ;
 
                                                     var vplus = new Vector3d(0, 5, 0);
                                                     var vminus = new Vector3d(0, -5, 0);
@@ -1046,25 +1048,32 @@ namespace ParkingDemo
                                                     var path1 = new GH_Path(pathindex, rowNew, colNew - 1);
                                                     var path2 = new GH_Path(pathindex, rowNew, colNew + 1);
                                                     var path3 = new GH_Path(pathindex, rowNew + 1, colNew);
-                                                    switch (k)
-                                                    {
-                                                        case -1:
-                                                            cartrnsfrms.Add(new Transform(translation0 * rotation0), path0);
-                                                            break;
-                                                        case 1:
-                                                            cartrnsfrms.Add(new Transform(translation3 * rotation3), path3);
-                                                            break;
-                                                    }
+                                                    var rowValue = CheckMatrix.GetValidIndex(rowNew + k, mtx.RowCount);
+                                                    var colValue = CheckMatrix.GetValidIndex(colNew + t, mtx.ColumnCount);
 
-                                                    switch (t)
+                                                    var adjacentMtxValue = CheckMatrix.GetMatrixItem(mtx, rowValue, colValue);
+                                                    if(adjacentMtxValue == 1)
                                                     {
-                                                        case -1:
-                                                            cartrnsfrms.Add(new Transform(translation1), path1);
-                                                            break;
-                                                        case 1:
-                                                            cartrnsfrms.Add(new Transform(translation3 * rotation3), path3);
-                                                            break;
+                                                        switch (k)
+                                                        {
+                                                            case -1:
+                                                                cartrnsfrms.Add(new Transform(translation0 * rotation0), path0);
+                                                                break;
+                                                            case 1:
+                                                                cartrnsfrms.Add(new Transform(translation3 * rotation3), path3);
+                                                                break;
+                                                        }
+                                                        switch (t)
+                                                        {
+                                                            case -1:
+                                                                cartrnsfrms.Add(new Transform(translation1), path1);
+                                                                break;
+                                                            case 1:
+                                                                cartrnsfrms.Add(new Transform(translation2 * rotation2), path2);
+                                                                break;
+                                                        }
                                                     }
+                                                   
 
                                                 }
                                             }
@@ -1073,10 +1082,6 @@ namespace ParkingDemo
                             }
                         }
                     }
-                }
-                foreach (var path in remomvingPaths)
-                {
-                    cartrnsfrms.RemovePath(path);
                 }
             }
 

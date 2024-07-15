@@ -12,6 +12,8 @@ using System.IO;
 using Grasshopper.Kernel.Parameters.Hints;
 using Rhino.Geometry;
 using Rhino.Render;
+using Grasshopper;
+
 namespace ParkingDemo.Utils
 {
     internal class ParkingPreview
@@ -78,11 +80,14 @@ namespace ParkingDemo.Utils
             if (null != image2)
             {
                 string filename2;
-                
-                filename2 = $"G:\\archtech\\thesis\\FatemeThesis\\Visualization\\imcap\\imcap6\\{DocumentName}_{Index.ToString()}.png";
-
-                if(!File.Exists(filename2))
+                string filePath;
+                filePath = $"G:\\archtech\\thesis\\FatemeThesis\\Visualization\\imcap\\imcap6"; 
+                if(!Directory.Exists(filePath))
                 filename2 = $"D:\\FatemeThesis\\Visualization\\imcap\\imcap6\\{DocumentName}_{Index.ToString()}.png";
+                else
+                {
+                    filename2 = $"G:\\archtech\\thesis\\FatemeThesis\\Visualization\\imcap\\imcap6\\{DocumentName}_{Index.ToString()}.png";
+                }
                 image2.Save(filename2);
             }
             // Change filename and format here
