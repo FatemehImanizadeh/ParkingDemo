@@ -39,7 +39,7 @@ namespace ParkingDemo.components.Preview
             var bRec = new Rectangle3d(Plane.Unset, 10, 10);
             DA.GetData(0, ref bRec);
             DA.GetData(1, ref resetPlan); 
-            ParkingPreview.PrintResult("P1", index, bRec,  resetPlan); 
+            ParkingPreview.PrintResult("P3", index, bRec,  resetPlan); 
         }
 
         protected override System.Drawing.Bitmap Icon => null;

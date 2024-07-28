@@ -19,9 +19,12 @@ using System.Diagnostics.Eventing.Reader;
 using Grasshopper.Kernel.Special;
 using Grasshopper.Kernel.Geometry.Voronoi;
 using static ParkingDemo.ParkingUtils.PathInfo;
+using Cell = ParkingDemo.ParkingUtils.PathInfo.Cell;
 
 namespace ParkingDemo
 {
+
+  
     public class ParkingUtils
     {
         public class CheckMatrix
@@ -802,12 +805,14 @@ namespace ParkingDemo
                 {
                     parkingpaths.RemoveAt(pathindex);
                     pathptsloc.RemovePath(path); //here we set the current pathindex to save the location of path cells only. and if the number of the cells in path is less than 3 we may omit the location of the path either.
+                    var mainPathPtsToRemove = new List<GH_Path>();
+                    var carTrnsfrmsToRemove = new List<GH_Path>();
                     foreach (GH_Path p in mainpathpts.Paths)
                     {
                         if (p.Indices[0] == pathindex)
                         {
                             mtx[p.Indices[1], p.Indices[2]] = 1;//bcz we omitted the path with lower that 3 elements we should change the value corresponding to these cells to 1 in the matrix so that we can still choose them for path and other functions
-                            mainpathpts.RemovePath(p);
+                            mainPathPtsToRemove.Add(p);
                         }
                     }
                     foreach (GH_Path p in cartrnsfrms.Paths)
@@ -815,8 +820,16 @@ namespace ParkingDemo
                         if (p.Indices[0] == pathindex)
                         {
                             mtx[p.Indices[1], p.Indices[2]] = 1;// and the same as last part we should change the values of the neighbor cells to the path to 1 to use them in further steps. bcz we omitted the car transformations for those cells eighter.
-                            cartrnsfrms.RemovePath(p);
+                            carTrnsfrmsToRemove.Add(p);
                         }
+                    }
+                    foreach(var p in mainPathPtsToRemove)
+                    {
+                        mainpathpts.RemovePath(p);
+                    }
+                    foreach(var p in carTrnsfrmsToRemove)
+                    {
+                        cartrnsfrms.RemovePath(p);
                     }
                     pathindex--;
                     startcellfindingattempt++;
@@ -927,11 +940,80 @@ namespace ParkingDemo
         }
         public class mainPathConnection
         {
-            
+
             //here we set these boolean values to assign them in code methods. 
             // if the path is not valid>> (wheather there is a ramp cell in distance btw cells or there is a cell outside the 
             // plan boundaries )>> then we set the ispathpvalid values to false and it is a filter to decide btw options to find available ones.
-         
+            public  class BridgePath
+            {
+               public enum Type
+               {
+                   RowBased, ColBased
+               }
+                public   int GainValue { get; set; }
+                public  bool PathPossible { get; set; }
+                public  Cell CellFirst { get; set; }
+                public  Cell CellSecond { get; set; }
+                public  Type TypeValue { get; set; }
+                public BridgePath()
+                {
+
+                }
+            }
+
+            public static BridgePath FindBestMatchPathCellsForConnection(Matrix mtx, ParkingPath PathFirst, ParkingPath PathSecond)
+            {
+                var selectedBridgePath  = new BridgePath();
+                if (PathFirst.cells != null && PathSecond.cells != null && PathFirst.cells.Count > 0 && PathSecond.cells.Count > 0)
+                { 
+                  var bridgePathValuesDic = new Dictionary<BridgePath, int>(); 
+                   for(int i = 0; i< PathFirst.cells.Count; i++)
+                    {
+                        for (int j = 0; j< PathSecond.cells.Count; j++)
+                        { //برای این که سلولهایی که حیلی از هم فاصله دارن رو انتخاب نکنه
+                            var cell1 = PathFirst.cells[i];
+                            var cell2 = PathSecond.cells[j];
+                            var manhatanDis = Math.Abs(cell1.row-cell2.row) + Math.Abs(cell1.col-cell2.col)-1;
+                            if (manhatanDis < 3)//
+                            {
+                                var bridgePathRowBased = new BridgePath();
+                                bridgePathRowBased.CellFirst = PathFirst.cells[i];
+                                bridgePathRowBased.CellSecond = PathSecond.cells[j];
+                                bridgePathRowBased.TypeValue = BridgePath.Type.RowBased;
+                                var lotgain = ParkingUtils.mainPathConnection.LotGain(PathFirst.cells[i], PathSecond.cells[j], mtx, true, out bool isPossible);
+                                bridgePathRowBased.GainValue = lotgain;
+                                if (isPossible )
+                                {
+                                    bridgePathValuesDic.Add(bridgePathRowBased, lotgain);
+                                }
+                                var bridgePathColBased = new BridgePath();
+                                bridgePathColBased.CellFirst = PathFirst.cells[i];
+                                bridgePathColBased.CellSecond = PathSecond.cells[j];
+                                bridgePathColBased.TypeValue = BridgePath.Type.RowBased;
+                                var lotgain2 = ParkingUtils.mainPathConnection.LotGain(PathFirst.cells[i], PathSecond.cells[j], mtx, false, out bool isPossible2);
+                                bridgePathColBased.GainValue = lotgain2;
+                                if (isPossible2 && lotgain2 > 0)
+                                {
+                                    bridgePathValuesDic.Add(bridgePathColBased, lotgain2);
+                                }
+                            }
+                           
+                        }
+                    }
+                   if(bridgePathValuesDic.Count > 0)
+                    {
+                        double max = bridgePathValuesDic.Max(kvp => kvp.Value);
+                        var allMazBridges = bridgePathValuesDic.Where(kvp => kvp.Value == max).Select(kvp => kvp.Key);
+                        var ran = new Random();
+                        var ranIndex = ran.Next(allMazBridges.ToList().Count);
+                        selectedBridgePath = allMazBridges.ToList()[ranIndex];
+                    }
+
+                  
+                }
+                return selectedBridgePath;
+
+            }
             public static void CreateConnectionPath(Matrix mtx, DataTree<Point3d> GridPts, List<PathInfo.ParkingPath> parkingpaths,
                 DataTree<Transform> cartrnsfrms, DataTree<Point3d> mainpathpts)
             {
@@ -947,16 +1029,26 @@ namespace ParkingDemo
                         {
                             if (pathFirst.cells.Count > 0 && pathSecond.cells.Count > 0)
                             {
-                                var random1 = new Random();
-                                var random2 = new Random();
-                                var ran1 = random1.Next(pathFirst.cells.Count);
-                                var ran2 = random2.Next(pathSecond.cells.Count);
-                                var cellRan1 = pathFirst.cells[ran1];
-                                var cellRan2 = pathSecond.cells[ran2];
-                                //    bool isPossible ; 
-                                var lotGain =
-                                    ParkingUtils.mainPathConnection.LotGain(cellRan1, cellRan2, mtx, true, out bool isPossible);
-                                if (lotGain >= 0)
+
+                                /* int lotGain = 1;
+                                 int iteration = 0;
+                                 Cell cellRan1 = null;
+                                 Cell cellRan2 = null; 
+                                 iteration++;
+                                 var random1 = new Random();
+                                 var random2 = new Random();
+                                 var ran1 = random1.Next(pathFirst.cells.Count);
+                                 var ran2 = random2.Next(pathSecond.cells.Count);
+                                  cellRan1 = pathFirst.cells[ran1];
+                                  cellRan2 = pathSecond.cells[ran2];
+                                 //    bool isPossible ; 
+                                     lotGain = 
+                                     ParkingUtils.mainPathConnection.LotGain(cellRan1, cellRan2, mtx, true, out bool isPossible);*/
+                                var bridgePath = FindBestMatchPathCellsForConnection(mtx, pathFirst, pathSecond);
+                                var cellRan1 = bridgePath.CellFirst;
+                                var cellRan2 = bridgePath.CellSecond;
+                                if(cellRan1 != null && cellRan2 != null)
+                                
                                 {
                                     var n1 = cellRan1.row;
                                     var m1 = cellRan1.col;
@@ -966,30 +1058,61 @@ namespace ParkingDemo
                                     var signn = (n2 - n1 >= 0) ? 1 : -1;
                                     var signm = (m2 - m1 >= 0) ? 1 : -1;
                                     var allBridgePathCells = new List<ParkingUtils.PathInfo.Cell>();
-                                    if (n2 != n1)
+                                    if(bridgePath.TypeValue == BridgePath.Type.RowBased)
                                     {
-                                        for (int k = 1; k <= Math.Abs(n2 - n1); k++)
+                                        if (n2 != n1)
                                         {
-                                            var step = k;
-                                            step *= signn;
-                                            var newint = new int[2];
-                                            var row = n1 + step;
-                                            var col = m1;
-                                            allBridgePathCells.Add(new PathInfo.Cell(row, col));
+                                            for (int k = 1; k <= Math.Abs(n2 - n1); k++)
+                                            {
+                                                var step = k;
+                                                step *= signn;
+                                                var newint = new int[2];
+                                                var row = n1 + step;
+                                                var col = m1;
+                                                allBridgePathCells.Add(new PathInfo.Cell(row, col));
+                                            }
+                                        }
+                                        if (m2 != m1)
+                                        {
+                                            for (int k = 1; k < Math.Abs(m2 - m1); k++)
+                                            {
+                                                var step = k;
+                                                step *= signm;
+                                                var newint2 = new int[2];
+                                                var row = n2;
+                                                var col = m1 + step;
+                                                allBridgePathCells.Add(new PathInfo.Cell(row, col));
+                                            }
                                         }
                                     }
-                                    if (m2 != m1)
+                                    else
                                     {
-                                        for (int k = 1; k < Math.Abs(m2 - m1); k++)
+                                        if (m2 != m1)
                                         {
-                                            var step = k;
-                                            step *= signm;
-                                            var newint2 = new int[2];
-                                            var row = n2;
-                                            var col = m1 + step;
-                                            allBridgePathCells.Add(new PathInfo.Cell(row, col));
+                                            for (int k = 1; k <= Math.Abs(m2 - m1); k++)
+                                            {
+                                                var step = k;
+                                                step *= signm;
+                                                var newint2 = new int[2];
+                                                var row = n1;
+                                                var col = m1 + step;
+                                                allBridgePathCells.Add(new PathInfo.Cell(row, col));
+                                            }
+                                        }
+                                        if (n2 != n1)
+                                        {
+                                            for (int k = 1; k < Math.Abs(n2 - n1); k++)
+                                            {
+                                                var step = k;
+                                                step *= signn;
+                                                var newint = new int[2];
+                                                var row = n1 + step;
+                                                var col = m2;
+                                                allBridgePathCells.Add(new PathInfo.Cell(row, col));
+                                            }
                                         }
                                     }
+                                   
                                     var parkingPathNew = new PathInfo.ParkingPath();
                                     parkingpaths.Add(parkingPathNew);
                                     parkingPathNew.pathindex = parkingpaths.Count;
@@ -1243,7 +1366,6 @@ namespace ParkingDemo
                             }
                         }
                     }
-
                 }
                 else
                 {

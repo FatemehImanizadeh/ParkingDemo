@@ -8,10 +8,14 @@ using Grasshopper.Kernel.Types;
 using GH_IO.Types;
 using Rhino.Render;
 using System.Diagnostics;
+using ParkingDemo.Utils;
+
 namespace ParkingDemo
 {
     public class PathFinder : GH_Component
     {
+        public Optimization Optimizaton = new Optimization();
+        public GenerationCollection Generations = new GenerationCollection();
         public PathFinder()
           : base("PathFinder", "PathFinder",
               "computes the optional paths to access lots in parking and outputs parking informaiton for visualization",
@@ -20,7 +24,7 @@ namespace ParkingDemo
         }
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddIntegerParameter("iteration", "iter", "the iteration for locating parking lots in plan", GH_ParamAccess.item);
+            pManager.AddBooleanParameter("ResetGeneration", "Reset", "reset previous generation so than a new parking collection would be created based on upcoming iterations", GH_ParamAccess.item);
             pManager.AddIntegerParameter("pathstartcell", "startcell", "row and column information of parking entrance cell based on ramp information", GH_ParamAccess.list);
             pManager.AddMatrixParameter("planmatrix", "planmatrix", "the matrix corresponding to plan while each item represents a function in parking", GH_ParamAccess.item);
             pManager.AddRectangleParameter("plancells", "cells", "plan cells of size 5*5 m in datatree that the firs element represents cellrow and the second represents cell column", GH_ParamAccess.tree);
@@ -32,15 +36,18 @@ namespace ParkingDemo
             pManager.AddTransformParameter("lotinformation", "lotinfo", "gives the parking lots information in plan", GH_ParamAccess.tree);
             pManager.AddGenericParameter("parkingpaths", "parkingpaths", "parkingpaths", GH_ParamAccess.list);
             pManager.AddMatrixParameter("planmatrix", "planmatrix", "planmatrix", GH_ParamAccess.item);
-        }
+            pManager.AddGenericParameter("Parking", "Parking", "Parking", GH_ParamAccess.item);
+            pManager.AddGenericParameter("GenerationCollection", "GenerationCollection", "GenerationCollection", GH_ParamAccess.list);
+            // pManager.AddNumberParameter("Score", "Score", "Score", GH_ParamAccess.item);
+        }          
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             var plantomatrix = new Matrix(2, 2);
             GH_Structure<Grasshopper.Kernel.Types.GH_Rectangle> ghcells = new GH_Structure<GH_Rectangle>();
             GH_Structure<GH_Point> ghgrid = new GH_Structure<GH_Point>();
             var parkingstartcell = new List<int>();
-            int iter = 3;
-            DA.GetData(0, ref iter);
+            var generationReset = false;
+            DA.GetData(0, ref generationReset);
             DA.GetDataList(1, parkingstartcell);
             DA.GetData(2, ref plantomatrix);
             DA.GetDataTree<GH_Rectangle>(3, out ghcells);
@@ -88,16 +95,25 @@ namespace ParkingDemo
                 iteration++;
                 ParkingUtils.pathfinder(plantomatrix, firstpathcell, grid, ref cartransforms, mainpathpts, ref pathindex, ref currentpathitemcount, pathptsloc, ref startcellfindingattemt, ref parkingpaths);
             }
-          ParkingUtils.mainPathConnection.CreateConnectionPath(plantomatrix, grid, parkingpaths, cartransforms, mainpathpts);
+            ParkingUtils.mainPathConnection.CreateConnectionPath(plantomatrix, grid, parkingpaths, cartransforms, mainpathpts);
             DA.SetDataTree(0, mainpathpts);
             DA.SetDataTree(1, cartransforms);
             DA.SetDataList(2, parkingpaths);
             DA.SetData(3, plantomatrix);
-
-
+            var parking = new Parking();
+            parking.CarTransforms = cartransforms;
+            parking.PathPoints = mainpathpts;
+            parking.PathCellNumber = mainpathpts.DataCount;
+            parking.LotNumber = cartransforms.DataCount;
+            var num = grid.DataCount;
+            parking.PlanCellNum = num;
+            if (generationReset)
+                Generations = new GenerationCollection();
+            Optimization.CalculateOptimizationScore( parking);
+            Generations.parkings.Add(parking);
+             DA.SetData(4, parking);
+            DA.SetData(5, Generations);
         }
-
-
         protected override System.Drawing.Bitmap Icon => null;//Resources.connection1_;
         public override Guid ComponentGuid
         {

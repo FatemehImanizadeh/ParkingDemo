@@ -7,6 +7,8 @@ using ParkingDemo;
 using Grasshopper.Kernel.Parameters;
 using System.Linq;
 using static ParkingDemo.ParkingUtils;
+using ParkingDemo.Utils;
+using Eto.Forms;
 
 namespace ParkingDemo
 {
@@ -20,10 +22,11 @@ namespace ParkingDemo
         }
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
+            pManager.AddBooleanParameter("AddRampToParking", "AR", "add ramp to parking in generation process", GH_ParamAccess.item, false);
             pManager.AddCurveParameter("outline", "outline", "parking internal outline", GH_ParamAccess.item);
             pManager.AddIntegerParameter("rampside", "Rside", "side of parking entrance", GH_ParamAccess.item);
             //pManager.AddIntegerParameter("rampstartcellindex", "Rstartindex", "index of the ramp start cell based on the ramp i", GH_ParamAccess.item);
-            Param_Integer param = pManager[1] as Param_Integer;
+            Param_Integer param = pManager[2] as Param_Integer;
             param.AddNamedValue("north", 0);
             param.AddNamedValue("west", 1);
             param.AddNamedValue("east", 2);
@@ -41,9 +44,6 @@ namespace ParkingDemo
             pManager.AddRectangleParameter("cells", "cells", "all cellular regions of plane with 5*5 m size", GH_ParamAccess.tree);
             pManager.AddNumberParameter("area", "area", "total internal outline area", GH_ParamAccess.item);
             pManager.AddPointParameter("sidecellsaddress", "side cells", "center of cells on the borders of the plan: each path contains cells of one side", GH_ParamAccess.tree);
-           
-            pManager.AddPointParameter("ramptype", "ramptype", "central cells of ramp type on scale of 1*1 m", GH_ParamAccess.tree);
-            pManager.AddTransformParameter("ramporientation", "Rorientation", "orientaiton of selected ramp type as transfromation matrix corresponding to selected type and start cell", GH_ParamAccess.list);
             pManager.AddNumberParameter("rampinfo", "rampinfo", " ramp information: index0: side, index1: index of ramp start cell on selected side, index2: ramp type, index3: ramp orientation", GH_ParamAccess.list);
             pManager.AddNumberParameter("rampendcell", "rampendcell", "gives the cell cell row and col of the ramp end cell which is the parking start cell", GH_ParamAccess.list); 
         }
@@ -54,11 +54,14 @@ namespace ParkingDemo
         /// <param name="DA">The DA object is used to retrieve from inputs and store in outputs.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
+            bool addRamp = false;
+            DA.GetData(0, ref addRamp); 
             var cir = new Circle(3);
-           var cir2=  cir.ToNurbsCurve();
+            var cir2=  cir.ToNurbsCurve();
             Curve crv = cir2;
-            
-            DA.GetData(0, ref crv);
+            DA.GetData(1, ref crv);
+            int rampside = 0;
+            DA.GetData(2, ref rampside);
             var temp_bbox = crv.GetBoundingBox(true);
             var minpt_0 = temp_bbox.Min;
             // transform the curve so that the center of bbox is on the origin
@@ -68,7 +71,6 @@ namespace ParkingDemo
             var bbox = crv.GetBoundingBox(true);
             var minpt = bbox.Min;
             var maxpt = bbox.Max;
-
             var grid = new DataTree<Point3d>();
             var size = 5;
             //اون پایین مشخص میکنم که گرید نقاط دقیقا اندازه محدوده کرو ورودی باشه و برای این که کامل اونو در بر بگیره شاید یکی بیشتر/
@@ -78,70 +80,51 @@ namespace ParkingDemo
             var cells = ParkingUtils.CellularOutline(grid, plantomatrix);
             var outline = ParkingUtils.outlinefromcells(cells);
             var area = cells.BranchCount * 25;
-            DA.SetDataTree(1, grid);
-            DA.SetData(2, outline);
-            DA.SetDataTree(3, cells);   
-            DA.SetData(4, area);
+
             var cellscount = cells.BranchCount;
             var ramptypes = new DataTree<Point3d>();
             ramptypes = ParkingUtils.Ramp.ramptypes();
             var ramporientations = new List<Transform>();
             ramporientations =  ParkingUtils.Ramp.ramporientations();
-            DA.SetDataTree(6, ramptypes);
             ramporientations.ToList();
-            DA.SetDataList(7, ramporientations) ;
-            // var rampsideindex = new List<int>();
-            // var rampsidecellindex = new List<int>();
-            // var ramptypeindex = new List<int>();
-            // var ramporientationindex = new List<int>();
             var sideptsaddress = new DataTree<int[]>();
             var allsidepts = Ramp.OutlineSidesFinder(plantomatrix, grid, out sideptsaddress);
-            DA.SetDataTree(5, allsidepts);
             var RampPossibleOptions = ParkingUtils.Ramp.RampPossibleOptions(plantomatrix, grid, sideptsaddress, allsidepts);
-
-          // for (int i = 0; i < RampPossibleOptions.Count; i +//+)
-          // {
-          //     rampsideindex.Add(RampPossibleOptions[i][0]);
-          //     rampsidecellindex.Add(RampPossibleOptions[i]// [1]);
-          //     ramptypeindex.Add(RampPossibleOptions[i][2]);
-          //     ramporientationindex.Add(RampPossibleOptions// [i][3]);
-          // }
-
-         // var _ramptypes = ramptypes;
-         // var _ramporientations = ramporientations;
-         // var _rampsideindex = rampsideindex;
-         // var _rampsidecellindex = rampsidecellindex;
-         // var _ramptypeindex = ramptypeindex;
-         // var _ramporientationindex = ramporientationindex;
-         // var _rampoptions = RampPossibleOptions;
-
+          
             var rampinfo = new List<int>();
             var firstpathcell = new int[2];
-            int rampside = 0;  
-
-
-
-          
-            DA.GetData(1, ref rampside);
             //DA.GetData(2, ref cellindex);
+            if (addRamp)
             ParkingUtils.Ramp.rampplacement(plantomatrix,RampPossibleOptions , sideptsaddress, ramptypes, ramporientations, rampside, out rampinfo, out firstpathcell);
-
+            else
+            {
+                var sidePtsSideAddress = sideptsaddress.Branch(rampside);
+                var ran = new Random();
+                var ranIndex = ran.Next(sidePtsSideAddress.Count);
+                 firstpathcell = sidePtsSideAddress[ranIndex];
+            }
             var rampendcell = new List<int>();
 
             rampendcell.Add(firstpathcell[0]);
             rampendcell.Add(firstpathcell[1]);
             DA.SetData(0,  plantomatrix);
+            DA.SetDataTree(1, grid);
+            DA.SetData(2, outline);
+            DA.SetDataTree(3, cells);
+            DA.SetData(4, area);
+            DA.SetDataTree(5, allsidepts);
+            DA.SetDataList(6, rampinfo);
+            DA.SetDataList(7, rampendcell) ;
 
-            DA.SetDataList(8, rampinfo);
-           DA.SetDataList(9, rampendcell) ;
-           
-
+            var parking = new Parking();
+            parking.PlanMatrix = plantomatrix;
+            parking.PlanPointsGrid = grid;
+            parking.PlanCells = cells;
+            parking.SidePoints = allsidepts;
+            parking.RampEndCell = new ParkingUtils.PathInfo.Cell(rampendcell[0], rampendcell[1]);
+            parking.PathStartCell = new ParkingUtils.PathInfo.Cell(rampendcell[0], rampendcell[1]);
         }
-
-        /// <summary>
-        /// Provides an Icon for the component.
-        /// </summary>
-        protected override System.Drawing.Bitmap Icon
+        protected       override System.Drawing.Bitmap Icon
         {
             get
             {
