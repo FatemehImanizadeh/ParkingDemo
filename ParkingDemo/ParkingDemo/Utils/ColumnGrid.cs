@@ -220,14 +220,12 @@ namespace ParkingDemo.Utils
                     var endlimit = outlinegridcoords[0][i + 1];
                     var num = Math.Floor(disGrid / preferreddistance);
                     var secDis = disGrid / num;
-                    num--;
+                    //num--;
                     var accessableCords = gridcoordinates[0].Where(k => k > startlimit && k < endlimit).OrderBy(k => k).ToList();
-
-                    for (int k = 0; k < num; k++)
+                    for (int k = 1; k < num; k++)
                     {
-                        var idealDis = k * secDis;
-                        var selectedCoord = accessableCords.OrderBy(x => Math.Abs(x - idealDis)).ToList().Last() ;
-                        
+                        var idealDis = k * secDis+ outlinegridcoords[0][i];
+                        var selectedCoord = accessableCords.OrderBy(x => Math.Abs(x - idealDis)).ToList().First() ;
                         horizontalfinalcoords.Add(selectedCoord);
                     }
 
@@ -242,14 +240,14 @@ namespace ParkingDemo.Utils
                     var startlimit = outlinegridcoords[1][i];
                     var endlimit = outlinegridcoords[1][i + 1];
                     var num = Math.Floor(disGrid / preferreddistance);
-                    var secDis = disGrid / num;
+                    var secDis = disGrid / num + outlinegridcoords[1][i]; ;
                     //num--;
                     var accessableCords = gridcoordinates[1].Where(k => k > startlimit && k < endlimit).OrderBy(k => k).ToList();
 
                     for (int k = 1; k < num; k++)
                     {
                         var idealDis = k * secDis;
-                        var selectedCoord = accessableCords.OrderBy(x => Math.Abs(x - idealDis)).ToList().Last();
+                        var selectedCoord = accessableCords.OrderBy(x => Math.Abs(x - idealDis)).ToList().First();
                         verticalfinalcoords.Add(selectedCoord);
                     }
                 }

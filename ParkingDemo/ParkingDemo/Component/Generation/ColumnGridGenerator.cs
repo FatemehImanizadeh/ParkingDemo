@@ -47,7 +47,7 @@ namespace ParkingDemo.Component.Generation
             var hcord = gridCoords[0];
             var vcoord = gridCoords[1];
             var finalgrid = new List<List<double>>();
-            finalgrid = ColumnGrid.GridGenerator2(gridCoords, ColumnGrid.OutlineGridCoordinates(outline), 5, 5);
+            finalgrid = ColumnGrid.GridGenerator2(gridCoords, ColumnGrid.OutlineGridCoordinates(outline), 7.5,7.5);
             finalgrid[0].Sort();
             finalgrid[1].Sort();
             var hgrid = finalgrid[0].Distinct().ToList();
