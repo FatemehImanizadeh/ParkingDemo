@@ -3,7 +3,22 @@ using System.Collections.Generic;
 
 using Grasshopper.Kernel;
 using ParkingDemo.Utils;
+using Rhino.Collections;
 using Rhino.Geometry;
+using Rhino.Runtime;
+using System.IO;
+using System.Linq;
+using System.Data;
+using System.Drawing;
+using System.Reflection;
+using System.Xml;
+using System.Xml.Linq;
+using System.Runtime.InteropServices;
+
+using Rhino.DocObjects;
+using Rhino.Collections;
+using GH_IO;
+using GH_IO.Serialization;
 
 namespace ParkingDemo.Component.Analyze
 {
@@ -34,7 +49,13 @@ namespace ParkingDemo.Component.Analyze
             {
                 ids.Add(parking.ParkingID);
                 scores.Add(parking.Score);
+
             }
+           
+           /* RhinoList<System.Object> IDs = new RhinoList<System.Object>(ids);
+            RhinoList<double> SCores = new RhinoList<double>(scores);
+            IDs.Sort(SCores.ToArray());
+            SCores.Sort();*/
             DA.SetDataList(0 , ids);
             DA.SetDataList(1 , scores);
         }

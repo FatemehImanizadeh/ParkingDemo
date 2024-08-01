@@ -23,14 +23,35 @@ namespace ParkingDemo.Component.Analyze
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
             pManager.AddNumberParameter("Score", "Score", "Score", GH_ParamAccess.item);
+            pManager.AddMatrixParameter("Plan Matrix", "PM", "parking plan matrix", GH_ParamAccess.item);
+            pManager.AddPointParameter("PathPoints", "Ppts", "parking path points", GH_ParamAccess.tree);
+            pManager.AddTransformParameter("LotInformations", "LI", "parking lots information", GH_ParamAccess.tree);
+            pManager.AddRectangleParameter("Cells", "cells", "all cellular regions of plane with 5*5 m size", GH_ParamAccess.tree);
+            pManager.AddPointParameter("Side Cells Address", "side cells", "center of cells on the borders of the plan: each path contains cells of one side", GH_ParamAccess.tree);
+            pManager.AddNumberParameter("RampInfo", "rampinfo", " ramp information: index0: side, index1: index of ramp start cell on selected side, index2: ramp type, index3: ramp orientation", GH_ParamAccess.list);
         }
+        
+
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             var parking = new Parking();
             DA.GetData(0, ref parking);
             var score = parking.Score;
+            var planMatrix = parking.PlanMatrix;
+            var pathPts = parking.PathPoints;
+            var lotInfo = parking.CarTransforms;
+            var cells = parking.PlanCells;
+            var sideCellsAddress = parking.SidePoints;
+            var rampInfo = parking.RampInfo;
+
             var lotCount = parking.LotNumber;
             DA.SetData(0, score);
+            DA.SetData(1, planMatrix);
+            DA.SetDataTree(2, pathPts);
+            DA.SetDataTree(3, lotInfo);
+            DA.SetDataTree(4, cells);
+            DA.SetDataTree(5, sideCellsAddress);
+            DA.SetDataList(6, rampInfo);
         }
         protected override System.Drawing.Bitmap Icon => null;
         public override Guid ComponentGuid

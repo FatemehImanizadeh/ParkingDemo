@@ -45,7 +45,8 @@ namespace ParkingDemo
             pManager.AddNumberParameter("area", "area", "total internal outline area", GH_ParamAccess.item);
             pManager.AddPointParameter("sidecellsaddress", "side cells", "center of cells on the borders of the plan: each path contains cells of one side", GH_ParamAccess.tree);
             pManager.AddNumberParameter("rampinfo", "rampinfo", " ramp information: index0: side, index1: index of ramp start cell on selected side, index2: ramp type, index3: ramp orientation", GH_ParamAccess.list);
-            pManager.AddNumberParameter("rampendcell", "rampendcell", "gives the cell cell row and col of the ramp end cell which is the parking start cell", GH_ParamAccess.list); 
+            pManager.AddNumberParameter("rampendcell", "rampendcell", "gives the cell cell row and col of the ramp end cell which is the parking start cell", GH_ParamAccess.list);
+            pManager.AddGenericParameter("Parking", "P", "parking with initial informatin created and stored in it", GH_ParamAccess.item); 
         }
 
         /// <summary>
@@ -78,9 +79,8 @@ namespace ParkingDemo
             var plantomatrix = ParkingUtils.GridToMatrix(grid, grid.BranchCount, grid.Branch(0).Count
       , crv);
             var cells = ParkingUtils.CellularOutline(grid, plantomatrix);
-            var outline = ParkingUtils.outlinefromcells(cells);
+            var outline = ParkingUtils.OutlineFromCells(cells);
             var area = cells.BranchCount * 25;
-
             var cellscount = cells.BranchCount;
             var ramptypes = new DataTree<Point3d>();
             ramptypes = ParkingUtils.Ramp.ramptypes();
@@ -90,7 +90,6 @@ namespace ParkingDemo
             var sideptsaddress = new DataTree<int[]>();
             var allsidepts = Ramp.OutlineSidesFinder(plantomatrix, grid, out sideptsaddress);
             var RampPossibleOptions = ParkingUtils.Ramp.RampPossibleOptions(plantomatrix, grid, sideptsaddress, allsidepts);
-          
             var rampinfo = new List<int>();
             var firstpathcell = new int[2];
             //DA.GetData(2, ref cellindex);
@@ -104,7 +103,6 @@ namespace ParkingDemo
                  firstpathcell = sidePtsSideAddress[ranIndex];
             }
             var rampendcell = new List<int>();
-
             rampendcell.Add(firstpathcell[0]);
             rampendcell.Add(firstpathcell[1]);
             DA.SetData(0,  plantomatrix);
@@ -114,15 +112,17 @@ namespace ParkingDemo
             DA.SetData(4, area);
             DA.SetDataTree(5, allsidepts);
             DA.SetDataList(6, rampinfo);
-            DA.SetDataList(7, rampendcell) ;
-
+            DA.SetDataList(7, rampendcell);
             var parking = new Parking();
             parking.PlanMatrix = plantomatrix;
             parking.PlanPointsGrid = grid;
+            parking.Outline = outline;
             parking.PlanCells = cells;
             parking.SidePoints = allsidepts;
             parking.RampEndCell = new ParkingUtils.PathInfo.Cell(rampendcell[0], rampendcell[1]);
             parking.PathStartCell = new ParkingUtils.PathInfo.Cell(rampendcell[0], rampendcell[1]);
+            parking.RampInfo = rampinfo;
+            DA.SetData(8, parking);
         }
         protected       override System.Drawing.Bitmap Icon
         {
