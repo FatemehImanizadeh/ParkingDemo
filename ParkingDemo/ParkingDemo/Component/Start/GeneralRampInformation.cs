@@ -9,9 +9,9 @@ namespace ParkingDemo.Component.Generation
     public class GeneralRampInformation : GH_Component
     {
         public GeneralRampInformation()
-          : base("GeneralRampInformation", "Nickname",
-              "Description",
-             "ParkingDemo", "preinfo")
+          : base("RampInformation", "RI",
+              "general ramp information including ramp orientations and ramp types",
+             "ParkingDemo", "Start")
         {
         }
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
@@ -29,7 +29,7 @@ namespace ParkingDemo.Component.Generation
             DA.SetDataTree(0, ramptype);
             DA.SetDataList(1, rampOrientations);
         }
-        protected override System.Drawing.Bitmap Icon => null;
+        protected override System.Drawing.Bitmap Icon =>ParkingDemo.Properties.Resources.RampInfo;
         public override Guid ComponentGuid => new Guid("ABDCE035-8B1B-4742-AF66-282E713CC1FD"); 
        
     }

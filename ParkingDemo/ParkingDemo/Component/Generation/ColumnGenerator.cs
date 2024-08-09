@@ -10,12 +10,12 @@ using Rhino.Input.Custom;
 
 namespace ParkingDemo.Component.Generation
 {
-    public class ColumnGridGenerator : GH_Component
+    public class ColumnGenerator : GH_Component
     {
-        public ColumnGridGenerator()
+        public ColumnGenerator()
           : base("ColumnGridGenerator", "CGG",
               "generates the structure based on parking data",
-                "ParkingDemo", "parking")
+                "ParkingDemo", "Generation")
         {
         }
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
@@ -26,6 +26,7 @@ namespace ParkingDemo.Component.Generation
         {
             pManager.AddNumberParameter("H", "H", "H", GH_ParamAccess.list);
             pManager.AddNumberParameter("V", "V", "V", GH_ParamAccess.list);
+            pManager.AddGenericParameter("Parking", "P", "parking with grids", GH_ParamAccess.item);
         }
         protected override void SolveInstance(IGH_DataAccess DA)
         {
@@ -54,8 +55,9 @@ namespace ParkingDemo.Component.Generation
             var vgrid = finalgrid[1].Distinct().ToList();
             DA.SetDataList(0, hgrid);
             DA.SetDataList(1, vgrid);
+            
         }
-        protected override System.Drawing.Bitmap Icon => null;
+        protected override System.Drawing.Bitmap Icon => ParkingDemo.Properties.Resources.ColumnGenerator;
         public override Guid ComponentGuid =>  new Guid("5C7545FD-F60D-4418-A0E0-08ECAAF5CBCC"); 
         
     }

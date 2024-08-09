@@ -25,9 +25,9 @@ namespace ParkingDemo.Component.Analyze
     public class DeconstructGenerationCollection : GH_Component
     {
         public DeconstructGenerationCollection()
-          : base("DeconstructGenerationCollection", "DGC",
-              "gets all parking guids inside a parking generation ",
-                "ParkingDemo", "parking")
+          : base("Deconstruct Parking Collection", "DPC",
+              "gets all parking guids inside a parking generation with select parking component all parkings inside collection are accessible ",
+                "ParkingDemo", "Analyse")
         {
         }
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
@@ -59,7 +59,7 @@ namespace ParkingDemo.Component.Analyze
             DA.SetDataList(0 , ids);
             DA.SetDataList(1 , scores);
         }
-        protected override System.Drawing.Bitmap Icon => null;
+        protected override System.Drawing.Bitmap Icon => ParkingDemo.Properties.Resources.DeconstructParkingCollection;
         public override Guid ComponentGuid  => new Guid("E6583702-C41A-4A28-BD9C-5ABCEE96F520"); }
         
     }

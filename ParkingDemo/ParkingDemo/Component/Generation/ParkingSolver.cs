@@ -12,14 +12,14 @@ using ParkingDemo.Utils;
 
 namespace ParkingDemo
 {
-    public class PathFinder : GH_Component
+    public class ParkingSolver : GH_Component
     {
         public Optimization Optimizaton = new Optimization();
         public GenerationCollection Generations = new GenerationCollection();
-        public PathFinder()
+        public ParkingSolver()
           : base("PathFinder", "PathFinder",
               "computes the optional paths to access lots in parking and outputs parking informaiton for visualization",
-              "ParkingDemo", "parking")
+              "ParkingDemo", "Generation")
         {
         }
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
@@ -98,7 +98,7 @@ namespace ParkingDemo
             }
             
         }
-        protected override System.Drawing.Bitmap Icon => null;//Resources.connection1_;
+        protected override System.Drawing.Bitmap Icon => ParkingDemo.Properties.Resources.ParkingSolver;
         public override Guid ComponentGuid
         {
             get { return new Guid("02AE87AE-E0AA-4D5C-B1C4-8213A002D4EE"); }

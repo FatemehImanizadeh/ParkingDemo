@@ -10,14 +10,14 @@ namespace ParkingDemo.components.Preview
 {
     
 
-    public class PrintResult : GH_Component
+    public class ExportImage : GH_Component
     {
         List<int> existingIndices = new ParkingPreview().ExistingIndices;
        
-        public PrintResult()
+        public ExportImage()
           : base("PrintResult", "PrintResult",
                   "PrintResult",
-              "ParkingDemo", "Preview")
+              "ParkingDemo", "Export")
         {
         }
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
@@ -42,7 +42,7 @@ namespace ParkingDemo.components.Preview
             ParkingPreview.PrintResult("P3", index, bRec,  resetPlan); 
         }
 
-        protected override System.Drawing.Bitmap Icon => null;
+        protected override System.Drawing.Bitmap Icon => ParkingDemo.Properties.Resources.ExportImage;
 
         public override Guid ComponentGuid
         {

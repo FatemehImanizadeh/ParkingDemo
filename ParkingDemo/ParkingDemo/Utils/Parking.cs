@@ -29,7 +29,10 @@ namespace ParkingDemo.Utils
         public ParkingUtils.PathInfo.Cell RampEndCell { get; set; }
         public ParkingUtils.PathInfo.Cell PathStartCell { get; set; }
         public Guid ParkingID { get => this._parkingID; set { this._parkingID = value; } }
-
+        /// <summary>
+        /// first for horizontal and second for vertical coordinates
+        /// </summary>
+        public List<List<double>> GridCoordinates { get; set; }
         public Parking() { }
     }
 }

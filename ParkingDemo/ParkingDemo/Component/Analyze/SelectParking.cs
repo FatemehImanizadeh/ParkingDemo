@@ -12,7 +12,7 @@ namespace ParkingDemo.Component.Analyze
         public SelectParking()
           : base("SelectParking", "SP",
               "select parking from generation collection based on parking guid",
-               "ParkingDemo", "parking")
+               "ParkingDemo", "Analyse")
         {
         }
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
@@ -37,16 +37,8 @@ namespace ParkingDemo.Component.Analyze
                if (p.ParkingID == parkingId ) { DA.SetData(0, p);break; };
             }
         }
-        protected override System.Drawing.Bitmap Icon
-        {
-            get
-            {
-                //You can add image files to your project resources and access them like this:
-                // return Resources.IconForThisComponent;
-                return null;
-            }
-        }
-
+        protected override System.Drawing.Bitmap Icon => ParkingDemo.Properties.Resources.SelectParking;
+    
         /// <summary>
         /// Gets the unique ID for this component. Do not change this ID after release.
         /// </summary>
