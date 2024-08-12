@@ -125,7 +125,7 @@
     <value>..\Resources\DeconstructParking.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="DeconstructParkingCollection" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\DeconstructParkingCollection.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+    <value>..\Resources\DeconstructParkingCollection .png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="ExportImage" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\ExportImage.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>

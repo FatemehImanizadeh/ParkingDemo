@@ -14,7 +14,7 @@ namespace ParkingDemo.Component.Start
     public class CreateGrid : GH_Component
     {
         public CreateGrid()
-          : base("StartGeneration", "OutlineGrid",
+          : base("StartGeneration", "StartGeneration",
               "create parking generation pre info and places ramp information in the output in case the ramp placement option is active",
               "ParkingDemo", "Start")
         {
@@ -22,8 +22,8 @@ namespace ParkingDemo.Component.Start
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
             pManager.AddBooleanParameter("AddRampToParking", "AR", "add ramp to parking in generation process", GH_ParamAccess.item, false);
-            pManager.AddCurveParameter("outline", "outline", "parking internal outline", GH_ParamAccess.item);
-            pManager.AddIntegerParameter("rampside", "Rside", "side of parking entrance", GH_ParamAccess.item);
+            pManager.AddCurveParameter("Outline", "O", "parking internal outline", GH_ParamAccess.item);
+            pManager.AddIntegerParameter("Entrance Side", "ES", "side of parking entrance", GH_ParamAccess.item);
             Param_Integer param = pManager[2] as Param_Integer;
             param.AddNamedValue("north", 0);
             param.AddNamedValue("west", 1);

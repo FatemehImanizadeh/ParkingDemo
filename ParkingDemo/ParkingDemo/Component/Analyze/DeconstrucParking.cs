@@ -48,8 +48,11 @@ namespace ParkingDemo.Component.Analyze
             var lotCount = parking.LotNumber;
             DA.SetData(0, score);
             DA.SetData(1, planMatrix);
+            if(pathPts != null)
             DA.SetDataTree(2, pathPts);
+            if(lotInfo != null)
             DA.SetDataTree(3, lotInfo);
+
             DA.SetDataTree(4, cells);
             DA.SetDataTree(5, sideCellsAddress);
             DA.SetData(6, outline);
