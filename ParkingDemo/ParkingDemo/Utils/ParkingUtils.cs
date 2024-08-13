@@ -44,6 +44,9 @@ namespace ParkingDemo
             }
             public static int GetMatrixItem(Matrix mtx, int rowIndex, int columnIndex)
             {
+
+                rowIndex = GetValidIndex(rowIndex, mtx.RowCount);
+                columnIndex = GetValidIndex(columnIndex, mtx.ColumnCount);
                 // Check if both row and column indices are valid
                 if (rowIndex != -1 && columnIndex != -1)
                 {
@@ -98,6 +101,36 @@ namespace ParkingDemo
                         mtx[i, j] = 0;
                 }
             return mtx;
+        }
+        public static Matrix GridToMatrix2( DataTree<Point3d> ptGrid, int row, int col, Curve Outline, Curve Exclude)
+        {
+            var mtx = new Matrix(row, col);
+            for (int i = 0; i < row; i++)
+                for (int j = 0; j < col; j++)
+                {
+                    var containment1 = Outline.Contains(ptGrid.Branch(i)[j], Plane.WorldXY, 0.01);
+                    var containment2 = Exclude.Contains(ptGrid.Branch(i)[j], Plane.WorldXY, 0.01);
+                    if (containment2 == PointContainment.Inside)
+                    {
+                        mtx[i, j] = 5; 
+                    }
+                    else
+                    {
+                        if(containment1 == PointContainment.Inside)
+                        {
+                            mtx[i, j] = 1; 
+                        }
+                        else
+                        {
+                            mtx[i, j] = 0; 
+                        }
+                    }
+                }
+            return mtx;
+        }
+        public static void ResetMatrixElementsAfterRamp(Matrix PlanMatrix)
+        {
+            Parallel.For(0, PlanMatrix.RowCount, i => { Parallel.For(0, PlanMatrix.ColumnCount, j => { PlanMatrix[i, j] = (PlanMatrix[i, j] == 5) ? 0 : PlanMatrix[i,j]; }); });
         }
         public static DataTree<Rectangle3d> CellularOutline(DataTree<Point3d> ptGrid, Matrix Gridmtx)
         {
@@ -470,11 +503,46 @@ namespace ParkingDemo
                                     var rowvalidindex = CheckMatrix.GetValidIndex(row, mtx.RowCount);
                                     var colvalidindex = CheckMatrix.GetValidIndex(col, mtx.ColumnCount);
                                     var matrixitem = CheckMatrix.GetMatrixItem(mtx, rowvalidindex, colvalidindex);
-                                    if (matrixitem != -1)
-                                        if (matrixitem != 0)
+                                    var emptyAdjacencies = 0;
+                                    if (ramptypes.Branch(t).IndexOf(pt) == ramptypes.Branch(t).Count - 1& (t==1 || t==2 || t==3))
+                                    {
+                                        var up = CheckMatrix.GetMatrixItem(mtx, rowvalidindex - 1, colvalidindex);
+                                        var right = CheckMatrix.GetMatrixItem(mtx, rowvalidindex, colvalidindex - 1);
+                                        var left = CheckMatrix.GetMatrixItem(mtx, rowvalidindex, colvalidindex + 1);
+                                        var down = CheckMatrix.GetMatrixItem(mtx, rowvalidindex + 1, colvalidindex);
+                                        
+                                        if (up == 1)
                                         {
-                                            num++;
+                                            emptyAdjacencies++;
                                         }
+                                        if (right == 1)
+                                        {
+                                            emptyAdjacencies++;
+                                        }
+                                        if (left == 1)
+                                        {
+                                            emptyAdjacencies++;
+                                        }
+                                        if (down == 1)
+                                        {
+                                            emptyAdjacencies++;
+                                        }
+                                        if (matrixitem != -1)
+                                            if (matrixitem != 0 && emptyAdjacencies >=3)
+                                            {
+                                                num++;
+                                            }
+                                    }
+                                    else
+                                    {
+                                        if (matrixitem != -1)
+                                            if (matrixitem != 0)
+                                            {
+                                                num++;
+                                            }
+                                    }
+                                   
+                                    
                                 }
                                 if (num == ramptypes.Branch(t).Count)
                                 {
@@ -924,22 +992,21 @@ namespace ParkingDemo
                                 bridgePathRowBased.TypeValue = BridgePath.Type.RowBased;
                                 var lotgain = ParkingUtils.mainPathConnection.LotGain(PathFirst.cells[i], PathSecond.cells[j], mtx, true, out bool isPossible);
                                 bridgePathRowBased.GainValue = lotgain;
-                                if (isPossible )
+                                if (isPossible)
                                 {
                                     bridgePathValuesDic.Add(bridgePathRowBased, lotgain);
                                 }
                                 var bridgePathColBased = new BridgePath();
                                 bridgePathColBased.CellFirst = PathFirst.cells[i];
                                 bridgePathColBased.CellSecond = PathSecond.cells[j];
-                                bridgePathColBased.TypeValue = BridgePath.Type.RowBased;
+                                bridgePathColBased.TypeValue = BridgePath.Type.ColBased;
                                 var lotgain2 = ParkingUtils.mainPathConnection.LotGain(PathFirst.cells[i], PathSecond.cells[j], mtx, false, out bool isPossible2);
                                 bridgePathColBased.GainValue = lotgain2;
-                                if (isPossible2 && lotgain2 > 0)
+                                if (isPossible2)
                                 {
                                     bridgePathValuesDic.Add(bridgePathColBased, lotgain2);
                                 }
                             }
-                           
                         }
                     }
                    if(bridgePathValuesDic.Count > 0)
@@ -949,6 +1016,10 @@ namespace ParkingDemo
                         var ran = new Random();
                         var ranIndex = ran.Next(allMazBridges.ToList().Count);
                         selectedBridgePath = allMazBridges.ToList()[ranIndex];
+                    }
+                    else
+                    {
+                        var rannew = new Random();
                     }
 
                   
@@ -963,7 +1034,7 @@ namespace ParkingDemo
                 var remomvingPaths = new List<GH_Path>();
                 for (int i = 0; i < parkingpaths.Count; i++)
                 {
-                    for (int j = 0; j < parkingpaths.Count; j++)
+                    for (int j = i+1; j < parkingpaths.Count; j++)
                     {
                         var pathFirst = parkingpaths[i];
                         var pathSecond = parkingpaths[j];
@@ -1058,29 +1129,11 @@ namespace ParkingDemo
                                     var parkingPathNew = new PathInfo.ParkingPath();
                                     parkingpaths.Add(parkingPathNew);
                                     parkingPathNew.pathindex = parkingpaths.Count;
-                                    foreach (var cell in allBridgePathCells)
-                                    {
-                                        foreach (var path in cartrnsfrms.Paths)
-                                        {
-                                            if (path.Indices[1] == cell.row && path.Indices[2] == cell.col)
-                                            {
-                                                // cartrnsfrms.RemovePath(path);
-                                                  remomvingPaths.Add(path);
-                                                break;
-                                            }
-                                            //mtx[cell.row, cell.col] = 2;
-                                        }
-                                    }
-
-                                    
-                                        foreach (var path in remomvingPaths)
-                                        {
-                                                cartrnsfrms.RemovePath(path);
-                                                // remomvingPaths.Add(path);
-                                        }
+                                   
                                     
                                     foreach (var cell in allBridgePathCells)
                                     {
+                                       
                                         mtx[cell.row, cell.col] = 3;
                                         var pathindex = parkingpaths.Count;
                                         var pathNewCell = new GH_Path(pathindex, cell.row, cell.col);
@@ -1117,7 +1170,7 @@ namespace ParkingDemo
                                                     var colValue = CheckMatrix.GetValidIndex(colNew + t, mtx.ColumnCount);
 
                                                     var adjacentMtxValue = CheckMatrix.GetMatrixItem(mtx, rowValue, colValue);
-                                                    if(adjacentMtxValue == 1)
+                                                    if (adjacentMtxValue == 1)
                                                     {
                                                         switch (k)
                                                         {
@@ -1137,11 +1190,32 @@ namespace ParkingDemo
                                                                 cartrnsfrms.Add(new Transform(translation2 * rotation2), path2);
                                                                 break;
                                                         }
+                                                        mtx[rowNew + k, colNew + t] = 2;
                                                     }
-                                                   
 
                                                 }
                                             }
+                                    }
+
+                                    foreach (var cell in allBridgePathCells)
+                                    {
+                                        foreach (var path in cartrnsfrms.Paths)
+                                        {
+                                            if (path.Indices[1] == cell.row && path.Indices[2] == cell.col)
+                                            {
+                                                // cartrnsfrms.RemovePath(path);
+                                                remomvingPaths.Add(path);
+                                                break;
+                                            }
+                                            //mtx[cell.row, cell.col] = 2;
+                                        }
+                                    }
+
+
+                                    foreach (var path in remomvingPaths)
+                                    {
+                                        cartrnsfrms.RemovePath(path);
+                                        // remomvingPaths.Add(path);
                                     }
                                 }
                             }
@@ -1180,6 +1254,12 @@ namespace ParkingDemo
                             var newint = new int[2];
                             newint[0] = n1 + step;
                             newint[1] = m1;
+                            if (mtx[n1 + step, m1] == 4 || mtx[n1 + step, m1] == 0)
+                            {
+                                ispathpossible = false;
+                                return int.MinValue;
+                            }
+                               
                             allbridgepathptsnbased.Append(newint);
                         }
                     }
@@ -1194,122 +1274,136 @@ namespace ParkingDemo
                             newint2[0] = n2;
                             newint2[1] = m1 + step;
                             allbridgepathptsnbased.Append(newint2);
+
+                            if (mtx[n2, step + m1] == 4 || mtx[n2, step + m1] == 0)
+                            {
+                                ispathpossible = false;
+                                return int.MinValue;
+                            }
+
+
+
                         }
                     }
-
-                    if (n1 != n2)
+                    if (ispathpossible)
                     {
-                        for (int i = 1; i <= Math.Abs(n2 - n1); i++)
+                        if (n1 != n2)
                         {
-                            var step = i;
-                            step *= signn;
-                            if (mtx[n1 + step, m1] == 4 || mtx[n1 + step, m1] == 0) { ispathpossible = false; }// scince by default we asume that the path is possible but if there is a cell in the bridge paht which is for ramp we set the value to false }
-                            else
+                            for (int i = 1; i <= Math.Abs(n2 - n1); i++)
                             {
-                                try
+                                var step = i;
+                                step *= signn;
+                                if (mtx[n1 + step, m1] == 4 || mtx[n1 + step, m1] == 0) { ispathpossible = false; }// scince by default we asume that the path is possible but if there is a cell in the bridge paht which is for ramp we set the value to false }
+                                else
                                 {
-                                    if (mtx[n1 + step, m1] == 2)
+                                    try
                                     {
-                                        nbasedgain--;
-                                        var removedCell = new PathInfo.Cell(n1 + step, m1);
-                                        removedCells.Add(removedCell);
+                                        if (mtx[n1 + step, m1] == 2)
+                                        {
+                                            nbasedgain--;
+                                            var removedCell = new PathInfo.Cell(n1 + step, m1);
+                                            removedCells.Add(removedCell);
+                                        }
+                                        for (int k = -1; k < 2; k++)
+                                            for (int t = -1; t < 2; t++)
+                                            {
+                                                if (Math.Abs(k) + Math.Abs(t) == 1)
+                                                {
+                                                    var currentCell = new int[] { n1 + step + k, m1 + t };
+                                                    var containment = false;
+                                                    for (i = 0; i < allbridgepathptsnbased.Length; i++)
+                                                    {
+                                                        if (allbridgepathptsnbased[i] == currentCell)
+                                                        {
+                                                            containment = true;
+                                                            break;
+                                                        }
+                                                    }
+                                                    if (!containment)
+                                                    {
+                                                        int value = (int)mtx[n1 + step + k, m1 + t];
+                                                        switch (value)
+                                                        {
+                                                            case 0:
+                                                                break;
+                                                            case 1:
+                                                                nbasedgain++;
+                                                                break;
+                                                            case 2:
+                                                                // nbasedgain--;
+                                                                break;
+                                                            case 3:
+                                                                break;
+                                                        }
+                                                    }
+                                                    //here step check if the neighbor is path itself or is not in the plan we do consider nothing; if it is lot we subtract from lotgain value and if it is empty cell we add to the lotgain value
+                                                }
+                                            }
                                     }
-                                    for (int k = -1; k < 2; k++)
-                                        for (int t = -1; t < 2; t++)
-                                        {
-                                            if (Math.Abs(k) + Math.Abs(t) == 1)
-                                            {
-                                                var currentCell = new int[] { n1 + step + k, m1 + t };
-                                                var containment = false;
-                                                for (i = 0; i < allbridgepathptsnbased.Length; i++)
-                                                {
-                                                    if (allbridgepathptsnbased[i] == currentCell)
-                                                    {
-                                                        containment = true;
-                                                        break;
-                                                    }
-                                                }
-                                                if (!containment)
-                                                {
-                                                    int value = (int)mtx[n1 + step + k, m1 + t];
-                                                    switch (value)
-                                                    {
-                                                        case 0:
-                                                            break;
-                                                        case 1:
-                                                            nbasedgain++;
-                                                            break;
-                                                        case 2:
-                                                            // nbasedgain--;
-                                                            break;
-                                                        case 3:
-                                                            break;
-                                                    }
-                                                }
-                                                //here step check if the neighbor is path itself or is not in the plan we do consider nothing; if it is lot we subtract from lotgain value and if it is empty cell we add to the lotgain value
-                                            }
-                                        }
+                                    catch { }
                                 }
-                                catch { }
                             }
                         }
-                    }
-                    if (m2 != m1)
-                    {
-                        for (int j = 1; j < Math.Abs(m2 - m1); j++)
+                        if (m2 != m1)
                         {
-                            var step = j;
-                            step *= signm;
-                            if (mtx[n2, m1 + step] == 4 || mtx[n2, m1 + step] == 0) { ispathpossible = false; }// scince by default we asume that the path is possible but if there is a cell in the bridge paht which is for ramp we set the value to false }
-                            else
+                            for (int j = 1; j < Math.Abs(m2 - m1); j++)
                             {
-                                try
+                                var step = j;
+                                step *= signm;
+                                if (mtx[n2, m1 + step] == 4 || mtx[n2, m1 + step] == 0) { ispathpossible = false; }// scince by default we asume that the path is possible but if there is a cell in the bridge paht which is for ramp we set the value to false }
+                                else
                                 {
-                                    if (mtx[n2, m1 + step] == 2) nbasedgain--;
-                                    for (int k = -1; k < 2; k++)
-                                        for (int t = -1; t < 2; t++)
-                                        {
-                                            if (Math.Abs(k) + Math.Abs(t) == 1)
+                                    try
+                                    {
+                                        if (mtx[n2, m1 + step] == 2) nbasedgain--;
+                                        for (int k = -1; k < 2; k++)
+                                            for (int t = -1; t < 2; t++)
                                             {
-                                                //var currentCell = new int[] { n2 + k, m1 + step + t };
-                                                var currentCell = new int[] { n1 + k, m1 + step + t };
-                                                var containment = false;
-                                                for (int i = 0; i < allbridgepathptsnbased.Length; i++)
+                                                if (Math.Abs(k) + Math.Abs(t) == 1)
                                                 {
-                                                    if (allbridgepathptsnbased[i] == currentCell)
+                                                    //var currentCell = new int[] { n2 + k, m1 + step + t };
+                                                    var currentCell = new int[] { n1 + k, m1 + step + t };
+                                                    var containment = false;
+                                                    for (int i = 0; i < allbridgepathptsnbased.Length; i++)
                                                     {
-                                                        containment = true;
-                                                        break;
+                                                        if (allbridgepathptsnbased[i] == currentCell)
+                                                        {
+                                                            containment = true;
+                                                            break;
 
+                                                        }
                                                     }
-                                                }
-                                                if (!containment)
-                                                {
-                                                    int value = (int)mtx[n2 + k, m1 + step + t];
-                                                    switch (value)
+                                                    if (!containment)
                                                     {
-                                                        case 0:
-                                                            break;
-                                                        case 1:
-                                                            nbasedgain++;
-                                                            break;
-                                                        case 2:
-                                                            // nbasedgain--;
-                                                            break;
-                                                        case 3:
-                                                            break;
+                                                        int value = (int)mtx[n2 + k, m1 + step + t];
+                                                        switch (value)
+                                                        {
+                                                            case 0:
+                                                                break;
+                                                            case 1:
+                                                                nbasedgain++;
+                                                                break;
+                                                            case 2:
+                                                                // nbasedgain--;
+                                                                break;
+                                                            case 3:
+                                                                break;
+                                                        }
                                                     }
+                                                    //here step check if the neighbor is path itself or is not in the plan we do consider nothing; if it is lot we subtract from lotgain value and if it is empty cell we add to the lotgain value
                                                 }
-                                                //here step check if the neighbor is path itself or is not in the plan we do consider nothing; if it is lot we subtract from lotgain value and if it is empty cell we add to the lotgain value
                                             }
-                                        }
+                                    }
+                                    catch { }
                                 }
-                                catch { }
                             }
                         }
+
                     }
                 }
+
                 else
+
                 {
 
 
@@ -1322,6 +1416,11 @@ namespace ParkingDemo
                             var newint2 = new int[2];
                             newint2[0] = n1;
                             newint2[1] = m1 + step;
+                            if (mtx[n1, m1 + step] == 4 || mtx[n1, step + m1] == 0)
+                            {
+                                ispathpossible = false;
+                                return int.MinValue;
+                            }
                             allbridgepathptsnbased.Append(newint2);
                         }
                     }
@@ -1334,117 +1433,125 @@ namespace ParkingDemo
                             var newint = new int[2];
                             newint[0] = n1 + step;
                             newint[1] = m2;
+                            if (mtx[n1 + step, m1] == 4 || mtx[n1 + step, m1] == 0)
+                            {
+                                ispathpossible = false;
+                                return int.MinValue;
+                            }
                             allbridgepathptsnbased.Append(newint);
                         }
                     }
-
-
-                    if (m2 != m1)
+                    if (ispathpossible)
                     {
-                        for (int j = 1; j < Math.Abs(m2 - m1); j++)
+                        if (m2 != m1)
                         {
-                            var step = j;
-                            step *= signm;
-                            if (mtx[n1, m1 + step] == 4 || mtx[n1, m1 + step] == 0) { ispathpossible = false; }// scince by default we asume that the path is possible but if there is a cell in the bridge paht which is for ramp we set the value to false }
-                            else
+                            for (int j = 1; j < Math.Abs(m2 - m1); j++)
                             {
-                                try
+                                var step = j;
+                                step *= signm;
+                                if (mtx[n1, m1 + step] == 4 || mtx[n1, m1 + step] == 0) { ispathpossible = false; }// scince by default we asume that the path is possible but if there is a cell in the bridge paht which is for ramp we set the value to false }
+                                else
                                 {
-                                    if (mtx[n1, m1 + step] == 2) nbasedgain--;
-                                    for (int k = -1; k < 2; k++)
-                                        for (int t = -1; t < 2; t++)
-                                        {
-                                            if (Math.Abs(k) + Math.Abs(t) == 1)
+                                    try
+                                    {
+                                        if (mtx[n1, m1 + step] == 2) nbasedgain--;
+                                        for (int k = -1; k < 2; k++)
+                                            for (int t = -1; t < 2; t++)
                                             {
-                                                //var currentCell = new int[] { n2 + k, m1 + step + t };
-                                                var currentCell = new int[] { n1 + k, m1 + step + t };
-                                                var containment = false;
-                                                for (int i = 0; i < allbridgepathptsnbased.Length; i++)
+                                                if (Math.Abs(k) + Math.Abs(t) == 1)
                                                 {
-                                                    if (allbridgepathptsnbased[i] == currentCell)
+                                                    //var currentCell = new int[] { n2 + k, m1 + step + t };
+                                                    var currentCell = new int[] { n1 + k, m1 + step + t };
+                                                    var containment = false;
+                                                    for (int i = 0; i < allbridgepathptsnbased.Length; i++)
                                                     {
-                                                        containment = true;
-                                                        break;
+                                                        if (allbridgepathptsnbased[i] == currentCell)
+                                                        {
+                                                            containment = true;
+                                                            break;
+                                                        }
                                                     }
-                                                }
-                                                if (!containment)
-                                                {
-                                                    int value = (int)mtx[n1 + k, m1 + step + t];
-                                                    switch (value)
+                                                    if (!containment)
                                                     {
-                                                        case 0:
-                                                            break;
-                                                        case 1:
-                                                            nbasedgain++;
-                                                            break;
-                                                        case 2:
-                                                            // nbasedgain--;
-                                                            break;
-                                                        case 3:
-                                                            break;
+                                                        int value = (int)mtx[n1 + k, m1 + step + t];
+                                                        switch (value)
+                                                        {
+                                                            case 0:
+                                                                break;
+                                                            case 1:
+                                                                nbasedgain++;
+                                                                break;
+                                                            case 2:
+                                                                // nbasedgain--;
+                                                                break;
+                                                            case 3:
+                                                                break;
+                                                        }
                                                     }
+                                                    //here step check if the neighbor is path itself or is not in the plan we do consider nothing; if it is lot we subtract from lotgain value and if it is empty cell we add to the lotgain value
                                                 }
-                                                //here step check if the neighbor is path itself or is not in the plan we do consider nothing; if it is lot we subtract from lotgain value and if it is empty cell we add to the lotgain value
                                             }
-                                        }
+                                    }
+                                    catch { }
                                 }
-                                catch { }
                             }
                         }
-                    }
-                    if (n1 != n2)
-                    {
-                        for (int i = 1; i < Math.Abs(n2 - n1); i++)
+                        if (n1 != n2)
                         {
-                            var step = i;
-                            step *= signn;
-                            if (mtx[n1 + step, m2] == 4 || mtx[n1 + step, m2] == 0) { ispathpossible = false; }// scince by default we asume that the path is possible but if there is a cell in the bridge paht which is for ramp we set the value to false }
-                            else
+                            for (int i = 1; i < Math.Abs(n2 - n1); i++)
                             {
-                                try
+                                var step = i;
+                                step *= signn;
+                                if (mtx[n1 + step, m2] == 4 || mtx[n1 + step, m2] == 0) { ispathpossible = false; }// scince by default we asume that the path is possible but if there is a cell in the bridge paht which is for ramp we set the value to false }
+                                else
                                 {
-                                    if (mtx[n1 + step, m2] == 2) nbasedgain--;
-                                    for (int k = -1; k < 2; k++)
-                                        for (int t = -1; t < 2; t++)
-                                        {
-                                            if (Math.Abs(k) + Math.Abs(t) == 1)
+                                    try
+                                    {
+                                        if (mtx[n1 + step, m2] == 2) nbasedgain--;
+                                        for (int k = -1; k < 2; k++)
+                                            for (int t = -1; t < 2; t++)
                                             {
-                                                var currentCell = new int[] { n1 + step + k, m2 + t };
-                                                var containment = false;
-                                                for (i = 0; i < allbridgepathptsnbased.Length; i++)
+                                                if (Math.Abs(k) + Math.Abs(t) == 1)
                                                 {
-                                                    if (allbridgepathptsnbased[i] == currentCell)
+                                                    var currentCell = new int[] { n1 + step + k, m2 + t };
+                                                    var containment = false;
+                                                    for (i = 0; i < allbridgepathptsnbased.Length; i++)
                                                     {
-                                                        containment = true;
-                                                        break;
+                                                        if (allbridgepathptsnbased[i] == currentCell)
+                                                        {
+                                                            containment = true;
+                                                            break;
+                                                        }
                                                     }
-                                                }
-                                                if (!containment)
-                                                {
-                                                    int value = (int)mtx[n1 + step + k, m2 + t];
-                                                    switch (value)
+                                                    if (!containment)
                                                     {
-                                                        case 0:
-                                                            break;
-                                                        case 1:
-                                                            nbasedgain++;
-                                                            break;
-                                                        case 2:
-                                                            // nbasedgain--;
-                                                            break;
-                                                        case 3:
-                                                            break;
+                                                        int value = (int)mtx[n1 + step + k, m2 + t];
+                                                        switch (value)
+                                                        {
+                                                            case 0:
+                                                                break;
+                                                            case 1:
+                                                                nbasedgain++;
+                                                                break;
+                                                            case 2:
+                                                                // nbasedgain--;
+                                                                break;
+                                                            case 3:
+                                                                break;
+                                                        }
                                                     }
+                                                    //here step check if the neighbor is path itself or is not in the plan we do consider nothing; if it is lot we subtract from lotgain value and if it is empty cell we add to the lotgain value
                                                 }
-                                                //here step check if the neighbor is path itself or is not in the plan we do consider nothing; if it is lot we subtract from lotgain value and if it is empty cell we add to the lotgain value
                                             }
-                                        }
+                                    }
+                                    catch { }
                                 }
-                                catch { }
                             }
                         }
                     }
                 }
+
+                  
                 return nbasedgain;
             }
 

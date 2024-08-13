@@ -49,7 +49,6 @@ namespace ParkingDemo
             DA.GetData(0, ref generationReset);
             var parking = new Parking();
             DA.GetData(1,  ref parking);
-           
             if(parking != null)
             {
                 var grid = parking.PlanPointsGrid;
@@ -79,7 +78,6 @@ namespace ParkingDemo
                 {
                     iteration++;
                     ParkingUtils.pathfinder(plantomatrix, firstpathcell, grid, ref cartransforms, mainpathpts, ref pathindex, ref currentpathitemcount, pathptsloc, ref startcellfindingattemt, ref parkingpaths);
-                 
                 }
                 ParkingUtils.mainPathConnection.CreateConnectionPath(plantomatrix, grid, parkingpaths, cartransforms, mainpathpts);
                 /*  DA.SetDataTree(0, mainpathpts);
@@ -101,7 +99,6 @@ namespace ParkingDemo
                 DA.SetData(0, parking);
                 DA.SetData(1, Generations);
             }
-            
         }
         protected override System.Drawing.Bitmap Icon => ParkingDemo.Properties.Resources.ParkingSolver;
         public override Guid ComponentGuid

@@ -23,8 +23,9 @@ namespace ParkingDemo.Component.Start
         {
             pManager.AddBooleanParameter("AddRampToParking", "AR", "add ramp to parking in generation process", GH_ParamAccess.item, false);
             pManager.AddCurveParameter("Outline", "O", "parking internal outline", GH_ParamAccess.item);
+            pManager.AddCurveParameter("Exclude Boundary", "E", "parking Exclude", GH_ParamAccess.item);
             pManager.AddIntegerParameter("Entrance Side", "ES", "side of parking entrance", GH_ParamAccess.item);
-            Param_Integer param = pManager[2] as Param_Integer;
+            Param_Integer param = pManager[3] as Param_Integer;
             param.AddNamedValue("north", 0);
             param.AddNamedValue("west", 1);
             param.AddNamedValue("east", 2);
@@ -49,15 +50,18 @@ namespace ParkingDemo.Component.Start
             var cir = new Circle(3);
             var cir2 = cir.ToNurbsCurve();
             Curve crv = cir2;
+            Curve crv2 = cir2; 
             DA.GetData(1, ref crv);
+            DA.GetData(2, ref crv2);
             int rampside = 0;
-            DA.GetData(2, ref rampside);
+            DA.GetData(3, ref rampside);
             var temp_bbox = crv.GetBoundingBox(true);
             var minpt_0 = temp_bbox.Min;
             // transform the curve so that the center of bbox is on the origin
             var transformation_vec = new Vector3d(minpt_0 * -1);
             var trf = Transform.Translation(transformation_vec);
             crv.Transform(trf);
+            crv2.Transform(trf);
             var bbox = crv.GetBoundingBox(true);
             var minpt = bbox.Min;
             var maxpt = bbox.Max;
@@ -65,8 +69,7 @@ namespace ParkingDemo.Component.Start
             var size = 5;
             //اون پایین مشخص میکنم که گرید نقاط دقیقا اندازه محدوده کرو ورودی باشه و برای این که کامل اونو در بر بگیره شاید یکی بیشتر/
             grid = ParkingUtils.CreateGrid((int)RoundUp.RoundTo(maxpt.Y, size) / size, (int)RoundUp.RoundTo(maxpt.X, size) / size, size);
-            var plantomatrix = GridToMatrix(grid, grid.BranchCount, grid.Branch(0).Count
-      , crv);
+            var plantomatrix = GridToMatrix2(grid, grid.BranchCount, grid.Branch(0).Count, crv, crv2);
             var cells = CellularOutline(grid, plantomatrix);
             var outline = OutlineFromCells(cells);
             var area = cells.BranchCount * 25;
@@ -94,14 +97,16 @@ namespace ParkingDemo.Component.Start
             var rampendcell = new List<int>();
             rampendcell.Add(firstpathcell[0]);
             rampendcell.Add(firstpathcell[1]);
-          /*  DA.SetData(0, plantomatrix);
-            DA.SetDataTree(1, grid);
-            DA.SetData(2, outline);
-            DA.SetDataTree(3, cells);
-            DA.SetData(4, area);
-            DA.SetDataTree(5, allsidepts);
-            DA.SetDataList(6, rampinfo);
-            DA.SetDataList(7, rampendcell);*/
+            ResetMatrixElementsAfterRamp(plantomatrix);
+
+            /*  DA.SetData(0, plantomatrix);
+              DA.SetDataTree(1, grid);
+              DA.SetData(2, outline);
+              DA.SetDataTree(3, cells);
+              DA.SetData(4, area);
+              DA.SetDataTree(5, allsidepts);
+              DA.SetDataList(6, rampinfo);
+              DA.SetDataList(7, rampendcell);*/
             var parking = new Parking();
             parking.PlanMatrix = plantomatrix;
             parking.PlanPointsGrid = grid;

@@ -33,6 +33,9 @@ namespace ParkingDemo.Utils
         /// first for horizontal and second for vertical coordinates
         /// </summary>
         public List<List<double>> GridCoordinates { get; set; }
+
+        public VerticalAccess VerticalAccess { get; set; }
+
         public Parking() { }
     }
 }
