@@ -79,17 +79,19 @@ namespace ParkingDemo
                     iteration++;
                     ParkingUtils.pathfinder(plantomatrix, firstpathcell, grid, ref cartransforms, mainpathpts, ref pathindex, ref currentpathitemcount, pathptsloc, ref startcellfindingattemt, ref parkingpaths);
                 }
-                ParkingUtils.mainPathConnection.CreateConnectionPath(plantomatrix, grid, parkingpaths, cartransforms, mainpathpts);
+                mainPathConnection.CreateConnectionPath(plantomatrix, grid, parkingpaths, cartransforms, mainpathpts);
                 /*  DA.SetDataTree(0, mainpathpts);
                   DA.SetDataTree(1, cartransforms);
                   DA.SetDataList(2, parkingpaths);
                   DA.SetData(3, plantomatrix);*/
                 /////
+                var emptyCells = ParkingUtils.emptycell(plantomatrix);
                 parking.PlanMatrix = plantomatrix;
                 parking.CarTransforms = cartransforms;
                 parking.PathPoints = mainpathpts;
                 parking.PathCellNumber = mainpathpts.DataCount;
                 parking.LotNumber = cartransforms.DataCount;
+                parking.EmptyCells = emptyCells;
                 var num2 = grid.DataCount;
                 parking.PlanCellNum = num2;
                 if (generationReset)

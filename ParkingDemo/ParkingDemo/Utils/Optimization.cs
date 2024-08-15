@@ -14,13 +14,15 @@ namespace ParkingDemo.Utils
             float lotnum = Parking.LotNumber;
             float pathCellNum = Parking.PathCellNumber;
             float totalCellNum = Parking.PlanCellNum;
+            float emptyCells = Parking.EmptyCells;  
             var emptyCell = totalCellNum - lotnum - pathCellNum; 
             float LotperArea = lotnum / totalCellNum;
             float pathperArea = pathCellNum / totalCellNum;
             float emptyperArea = emptyCell / totalCellNum;
             var score = LotperArea / (pathperArea * emptyperArea);
-            Parking.Score = score;
-            return score;
+            var score2 = lotnum / (emptyCell * pathCellNum);
+            Parking.Score = score2;
+            return score2;
         }
     }
 }

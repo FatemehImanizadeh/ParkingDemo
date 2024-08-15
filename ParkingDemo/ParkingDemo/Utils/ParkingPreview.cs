@@ -20,7 +20,7 @@ namespace ParkingDemo.Utils
     {
         public List<int> ExistingIndices = new List<int>();
 
-        public static void PrintResult(string DocumentName, int Index, Rectangle3d PlanArea, bool resetPlan)
+        public static void PrintResult(string DocumentName,string SaveFilePath, int Index, Rectangle3d PlanArea, bool resetPlan)
         {
             // Set up export options
             var doc = RhinoDoc.ActiveDoc;
@@ -88,7 +88,7 @@ namespace ParkingDemo.Utils
                 {
                     filename2 = $"G:\\archtech\\thesis\\FatemeThesis\\Visualization\\imcap\\imcap6\\{DocumentName}_{Index.ToString()}.png";
                 }
-                image2.Save(filename2);
+                image2.Save(SaveFilePath);
             }
             // Change filename and format here
             //   var path = $"C:\\ParkingDemo\\Result";

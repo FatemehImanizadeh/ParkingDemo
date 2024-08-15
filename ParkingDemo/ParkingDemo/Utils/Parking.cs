@@ -14,6 +14,7 @@ namespace ParkingDemo.Utils
         public int LotNumber { get; set; }
         public int PathCellNumber { get; set; }
         public int PlanCellNum { get; set; }
+        public int EmptyCells { get; set; }
         public DataTree<Transform> CarTransforms { get; set; }
         public DataTree<Point3d> PathPoints { get; set; }
         public double Score { get; set; }

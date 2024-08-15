@@ -8,6 +8,7 @@ using System.Linq;
 using static ParkingDemo.ParkingUtils;
 using ParkingDemo.Utils;
 using Eto.Forms;
+using System.Threading.Tasks;
 
 namespace ParkingDemo.Component.Start
 {
@@ -23,7 +24,7 @@ namespace ParkingDemo.Component.Start
         {
             pManager.AddBooleanParameter("AddRampToParking", "AR", "add ramp to parking in generation process", GH_ParamAccess.item, false);
             pManager.AddCurveParameter("Outline", "O", "parking internal outline", GH_ParamAccess.item);
-            pManager.AddCurveParameter("Exclude Boundary", "E", "parking Exclude", GH_ParamAccess.item);
+            pManager.AddCurveParameter("Exclude Boundary", "E", "parking Exclude", GH_ParamAccess.list);
             pManager.AddIntegerParameter("Entrance Side", "ES", "side of parking entrance", GH_ParamAccess.item);
             Param_Integer param = pManager[3] as Param_Integer;
             param.AddNamedValue("north", 0);
@@ -50,9 +51,9 @@ namespace ParkingDemo.Component.Start
             var cir = new Circle(3);
             var cir2 = cir.ToNurbsCurve();
             Curve crv = cir2;
-            Curve crv2 = cir2; 
+            var excludeCrvs = new List<Curve>(); 
             DA.GetData(1, ref crv);
-            DA.GetData(2, ref crv2);
+            if(!DA.GetDataList(2, excludeCrvs)) return;
             int rampside = 0;
             DA.GetData(3, ref rampside);
             var temp_bbox = crv.GetBoundingBox(true);
@@ -61,23 +62,19 @@ namespace ParkingDemo.Component.Start
             var transformation_vec = new Vector3d(minpt_0 * -1);
             var trf = Transform.Translation(transformation_vec);
             crv.Transform(trf);
-            crv2.Transform(trf);
-            var bbox = crv.GetBoundingBox(true);
+            foreach(var crvex in excludeCrvs) { crvex.Transform(trf); }
+            var bbox = crv.GetBoundingBox(true); 
             var minpt = bbox.Min;
             var maxpt = bbox.Max;
             var grid = new DataTree<Point3d>();
             var size = 5;
             //اون پایین مشخص میکنم که گرید نقاط دقیقا اندازه محدوده کرو ورودی باشه و برای این که کامل اونو در بر بگیره شاید یکی بیشتر/
             grid = ParkingUtils.CreateGrid((int)RoundUp.RoundTo(maxpt.Y, size) / size, (int)RoundUp.RoundTo(maxpt.X, size) / size, size);
-            var plantomatrix = GridToMatrix2(grid, grid.BranchCount, grid.Branch(0).Count, crv, crv2);
+            var plantomatrix = GridToMatrix3(grid, grid.BranchCount, grid.Branch(0).Count, crv, excludeCrvs);
             var cells = CellularOutline(grid, plantomatrix);
             var outline = OutlineFromCells(cells);
-            var area = cells.BranchCount * 25;
-            var cellscount = cells.BranchCount;
-            var ramptypes = new DataTree<Point3d>();
-            ramptypes = Ramp.ramptypes();
-            var ramporientations = new List<Transform>();
-            ramporientations = Ramp.ramporientations();
+            var ramptypes = Ramp.ramptypes();
+           var  ramporientations = Ramp.ramporientations();
             ramporientations.ToList();
             var sideptsaddress = new DataTree<int[]>();
             var allsidepts = Ramp.OutlineSidesFinder(plantomatrix, grid, out sideptsaddress);
