@@ -6,7 +6,7 @@ using Eto.Threading;
 using Grasshopper.Kernel;
 using ParkingDemo.Utils;
 using Rhino.Geometry;
-
+using System.Threading; 
 using System.Threading;
 namespace ParkingDemo.components.Preview
 {
@@ -48,7 +48,7 @@ namespace ParkingDemo.components.Preview
             DA.GetData(3, ref resetPlan);
             if ( resetPlan)
             {
-
+                
             if (parkingName != ParkingName)
             existingIndices.Clear();
                 if (existingIndices.Count == 0) existingIndices.Add(0);

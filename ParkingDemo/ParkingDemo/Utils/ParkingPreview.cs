@@ -13,6 +13,7 @@ using Grasshopper.Kernel.Parameters.Hints;
 using Rhino.Geometry;
 using Rhino.Render;
 using Grasshopper;
+using System.Net.NetworkInformation;
 
 namespace ParkingDemo.Utils
 {
@@ -22,6 +23,7 @@ namespace ParkingDemo.Utils
 
         public static void PrintResult(string DocumentName,string SaveFilePath, int Index, Rectangle3d PlanArea, bool resetPlan)
         {
+           // System.Threading.Thread.Sleep(1000); 
             // Set up export options
             var doc = RhinoDoc.ActiveDoc;
             RhinoPageView viewRectangle;
@@ -88,6 +90,7 @@ namespace ParkingDemo.Utils
                 {
                     filename2 = $"G:\\archtech\\thesis\\FatemeThesis\\Visualization\\imcap\\imcap6\\{DocumentName}_{Index.ToString()}.png";
                 }
+                SaveFilePath += $"{ DocumentName}_{ Index.ToString()}.png";
                 image2.Save(SaveFilePath);
             }
             // Change filename and format here

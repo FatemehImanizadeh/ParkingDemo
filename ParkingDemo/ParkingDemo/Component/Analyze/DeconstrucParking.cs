@@ -28,10 +28,10 @@ namespace ParkingDemo.Component.Analyze
             pManager.AddTransformParameter("LotInformations", "LI", "parking lots information", GH_ParamAccess.tree);
             pManager.AddRectangleParameter("Cells", "cells", "all cellular regions of plane with 5*5 m size", GH_ParamAccess.tree);
             pManager.AddPointParameter("Side Cells Address", "side cells", "center of cells on the borders of the plan: each path contains cells of one side", GH_ParamAccess.tree);
+            pManager.AddRectangleParameter("EXcluded Cells", "EC", "excluded cells in design process", GH_ParamAccess.list); 
             pManager.AddCurveParameter("Plan Outline", "O", "plan outline", GH_ParamAccess.item);
             pManager.AddNumberParameter("RampInfo", "rampinfo", " ramp information: index0: side, index1: index of ramp start cell on selected side, index2: ramp type, index3: ramp orientation", GH_ParamAccess.list);
         }
-        
 
         protected override void SolveInstance(IGH_DataAccess DA)
         {
@@ -52,11 +52,11 @@ namespace ParkingDemo.Component.Analyze
             DA.SetDataTree(2, pathPts);
             if(lotInfo != null)
             DA.SetDataTree(3, lotInfo);
-
             DA.SetDataTree(4, cells);
             DA.SetDataTree(5, sideCellsAddress);
-            DA.SetData(6, outline);
-            DA.SetDataList(7, rampInfo);
+            DA.SetDataList(6, parking.ExcludeCells);
+            DA.SetData(7, outline);
+            DA.SetDataList(8, rampInfo);
         }
         protected override System.Drawing.Bitmap Icon => ParkingDemo.Properties.Resources.DeconstructParking;
         public override Guid ComponentGuid

@@ -79,7 +79,7 @@ namespace ParkingDemo
                     iteration++;
                     ParkingUtils.pathfinder(plantomatrix, firstpathcell, grid, ref cartransforms, mainpathpts, ref pathindex, ref currentpathitemcount, pathptsloc, ref startcellfindingattemt, ref parkingpaths);
                 }
-                mainPathConnection.CreateConnectionPath(plantomatrix, grid, parkingpaths, cartransforms, mainpathpts);
+                mainPathConnection.CreateConnectionPath(plantomatrix, grid, parkingpaths, cartransforms, mainpathpts, parking);
                 /*  DA.SetDataTree(0, mainpathpts);
                   DA.SetDataTree(1, cartransforms);
                   DA.SetDataList(2, parkingpaths);
@@ -96,8 +96,12 @@ namespace ParkingDemo
                 parking.PlanCellNum = num2;
                 if (generationReset)
                     Generations = new GenerationCollection();
-                Optimization.CalculateOptimizationScore(parking);
-                Generations.parkings.Add(parking);
+                var optimization = new Optimization(); 
+                Optimization.OptimizationFunction(optimization, parking);
+                if (parking.IsGenerationValid) 
+                {
+                    Generations.parkings.Add(parking);
+                }
                 DA.SetData(0, parking);
                 DA.SetData(1, Generations);
             }

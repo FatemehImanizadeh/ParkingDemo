@@ -84,14 +84,11 @@ namespace ParkingDemo.Utils
                 {
                     var rannew = new Random();
                 }
-
-
             }
             return selectedBridgePath;
-
         }
         public static void CreateConnectionPath(Matrix mtx, DataTree<Point3d> GridPts, List<PathInfo.ParkingPath> parkingpaths,
-            DataTree<Transform> cartrnsfrms, DataTree<Point3d> mainpathpts)
+            DataTree<Transform> cartrnsfrms, DataTree<Point3d> mainpathpts , Parking Parking)
         {
             // in these 2 below for loops i want to choose all 2 posssible combinations in existing paths and check the shortest distance between each couple of paths finally i should take the best choice considering both distance and lotgain.
             var remomvingPaths = new List<GH_Path>();
@@ -187,7 +184,6 @@ namespace ParkingDemo.Utils
                                         }
                                     }
                                 }
-
                                 var parkingPathNew = new PathInfo.ParkingPath();
                                 parkingpaths.Add(parkingPathNew);
                                 parkingPathNew.pathindex = parkingpaths.Count;
@@ -280,6 +276,10 @@ namespace ParkingDemo.Utils
                                 }
                             }
                         }
+                    }
+                    else
+                    {
+                      //  Parking.IsGenerationValid = false;
                     }
                 }
             }

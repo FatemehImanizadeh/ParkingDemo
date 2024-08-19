@@ -53,7 +53,7 @@ namespace ParkingDemo.Component.Start
             Curve crv = cir2;
             var excludeCrvs = new List<Curve>(); 
             DA.GetData(1, ref crv);
-            if(!DA.GetDataList(2, excludeCrvs)) return;
+            DA.GetDataList(2, excludeCrvs);
             int rampside = 0;
             DA.GetData(3, ref rampside);
             var temp_bbox = crv.GetBoundingBox(true);
@@ -70,7 +70,7 @@ namespace ParkingDemo.Component.Start
             var size = 5;
             //اون پایین مشخص میکنم که گرید نقاط دقیقا اندازه محدوده کرو ورودی باشه و برای این که کامل اونو در بر بگیره شاید یکی بیشتر/
             grid = ParkingUtils.CreateGrid((int)RoundUp.RoundTo(maxpt.Y, size) / size, (int)RoundUp.RoundTo(maxpt.X, size) / size, size);
-            var plantomatrix = GridToMatrix3(grid, grid.BranchCount, grid.Branch(0).Count, crv, excludeCrvs);
+            var plantomatrix = GridToMatrix3(grid, grid.BranchCount, grid.Branch(0).Count, crv, excludeCrvs, out List<Rectangle3d> excludeCells);
             var cells = CellularOutline(grid, plantomatrix);
             var outline = OutlineFromCells(cells);
             var ramptypes = Ramp.ramptypes();
@@ -105,6 +105,7 @@ namespace ParkingDemo.Component.Start
               DA.SetDataList(6, rampinfo);
               DA.SetDataList(7, rampendcell);*/
             var parking = new Parking();
+            parking.ExcludeCells = excludeCells; 
             parking.PlanMatrix = plantomatrix;
             parking.PlanPointsGrid = grid;
             parking.Outline = outline;

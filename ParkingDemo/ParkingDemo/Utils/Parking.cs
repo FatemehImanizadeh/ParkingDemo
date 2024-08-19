@@ -11,6 +11,7 @@ namespace ParkingDemo.Utils
 {
     public class Parking
     {
+        
         public int LotNumber { get; set; }
         public int PathCellNumber { get; set; }
         public int PlanCellNum { get; set; }
@@ -19,8 +20,14 @@ namespace ParkingDemo.Utils
         public DataTree<Point3d> PathPoints { get; set; }
         public double Score { get; set; }
         private Guid _parkingID = Guid.NewGuid();
-
-
+        private bool _IsGenerationValid = true;
+        public bool IsGenerationValid { get { return _IsGenerationValid; } set { _IsGenerationValid = value; } }
+        private List<Rectangle3d> _ExcludeCells = new List<Rectangle3d>();
+        public List<Rectangle3d> ExcludeCells
+        {
+            get { return _ExcludeCells; }
+            set { _ExcludeCells = value; }
+        }
         public DataTree<Point3d> PlanPointsGrid { get; set; }
         public DataTree<Rectangle3d>PlanCells { get; set; }
         public Matrix PlanMatrix { get; set; }

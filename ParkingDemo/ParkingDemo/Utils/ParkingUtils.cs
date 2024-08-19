@@ -127,8 +127,9 @@ namespace ParkingDemo
                 }
             return mtx;
         }
-        public static Matrix GridToMatrix3(DataTree<Point3d> ptGrid, int row, int col, Curve Outline, List<Curve> Exclutions)
+        public static Matrix GridToMatrix3(DataTree<Point3d> ptGrid, int row, int col, Curve Outline, List<Curve> Exclutions, out List<Rectangle3d> ExcludeCells)
         {
+            var excludeCells = new List<Rectangle3d>();
             var mtx = new Matrix(row, col);
             for (int i = 0; i < row; i++)
                 for (int j = 0; j < col; j++)
@@ -141,6 +142,11 @@ namespace ParkingDemo
                         if (containment2 == PointContainment.Inside)
                         {
                             mtx[i, j] = 5;
+                            var basePt = ptGrid.Branch(i)[j] + new Vector3d(-2.5, -2.5, 0);
+                            var plane = Plane.WorldXY;
+                            plane.Origin = basePt;
+                            var rec = new Rectangle3d(plane, 5, 5);
+                            excludeCells.Add(rec);
                         }
                         else
                         {
@@ -155,6 +161,7 @@ namespace ParkingDemo
                         }
                     });
                 }
+            ExcludeCells = excludeCells;
             return mtx;
         }
         public static void ResetMatrixElementsAfterRamp(Matrix PlanMatrix)
@@ -647,6 +654,7 @@ namespace ParkingDemo
                 parkingpaths.Add(parkingpath);
                 var pathcell = new PathInfo.Cell(n, m, parkingpaths[0]);
                 parkingpath.cells.Add(pathcell);
+                mainpathpts.Add(grid.Branch(n)[m], new GH_Path(pathindex, n, m));
             }
             mtx[n, m] = 3;
             var pathpts = new Point3d[4];
