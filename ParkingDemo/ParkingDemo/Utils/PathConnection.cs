@@ -87,17 +87,21 @@ namespace ParkingDemo.Utils
             }
             return selectedBridgePath;
         }
-        public static void CreateConnectionPath(Matrix mtx, DataTree<Point3d> GridPts, List<PathInfo.ParkingPath> parkingpaths,
-            DataTree<Transform> cartrnsfrms, DataTree<Point3d> mainpathpts , Parking Parking)
+        public static void CreateConnectionPath( Parking Parking)
         {
+            var mtx = Parking.PlanMatrix;
+            var gridPts = Parking.PlanPointsGrid;
+            var parkingPaths = Parking.ParkingPaths ; 
+            var carTransforms = Parking.CarTransforms;
+            var mainPathPts = Parking.PathPoints; 
             // in these 2 below for loops i want to choose all 2 posssible combinations in existing paths and check the shortest distance between each couple of paths finally i should take the best choice considering both distance and lotgain.
             var remomvingPaths = new List<GH_Path>();
-            for (int i = 0; i < parkingpaths.Count; i++)
+            for (int i = 0; i < parkingPaths.Count; i++)
             {
-                for (int j = i + 1; j < parkingpaths.Count; j++)
+                for (int j = i + 1; j < parkingPaths.Count; j++)
                 {
-                    var pathFirst = parkingpaths[i];
-                    var pathSecond = parkingpaths[j];
+                    var pathFirst = parkingPaths[i];
+                    var pathSecond = parkingPaths[j];
                     if (pathFirst.cells != null && pathSecond.cells != null)
                     {
                         if (pathFirst.cells.Count > 0 && pathSecond.cells.Count > 0)
@@ -185,17 +189,17 @@ namespace ParkingDemo.Utils
                                     }
                                 }
                                 var parkingPathNew = new PathInfo.ParkingPath();
-                                parkingpaths.Add(parkingPathNew);
-                                parkingPathNew.pathindex = parkingpaths.Count;
+                                parkingPaths.Add(parkingPathNew);
+                                parkingPathNew.pathindex = parkingPaths.Count;
 
 
                                 foreach (var cell in allBridgePathCells)
                                 {
 
                                     mtx[cell.row, cell.col] = 3;
-                                    var pathindex = parkingpaths.Count;
+                                    var pathindex = parkingPaths.Count;
                                     var pathNewCell = new GH_Path(pathindex, cell.row, cell.col);
-                                    mainpathpts.Add(new Point3d(GridPts.Branch(cell.row)[cell.col]), pathNewCell);
+                                    mainPathPts.Add(new Point3d(gridPts.Branch(cell.row)[cell.col]), pathNewCell);
                                     // parkingPathNew.cells.Add(cell);
                                     for (int k = -1; k < 2; k++)
                                         for (int t = -1; t < 2; t++)
@@ -208,7 +212,7 @@ namespace ParkingDemo.Utils
                                                 var vminus = new Vector3d(0, -5, 0);
                                                 var hplus = new Vector3d(5, 0, 0);
                                                 var hminus = new Vector3d(-5, 0, 0);
-                                                var vecbase = new Vector3d(new Point3d(GridPts.Branch(rowNew)[colNew]));
+                                                var vecbase = new Vector3d(new Point3d(gridPts.Branch(rowNew)[colNew]));
                                                 Transform rotation0 = new Transform(Transform.Rotation(-Math.PI / 2, Plane.WorldXY.Origin));
                                                 Transform rotation2 = new Transform(Transform.Rotation(Math.PI, Plane.WorldXY.Origin));
                                                 Transform rotation3 = new Transform(Transform.Rotation(Math.PI / 2, Plane.WorldXY.Origin));
@@ -232,19 +236,19 @@ namespace ParkingDemo.Utils
                                                     switch (k)
                                                     {
                                                         case -1:
-                                                            cartrnsfrms.Add(new Transform(translation0 * rotation0), path0);
+                                                            carTransforms.Add(new Transform(translation0 * rotation0), path0);
                                                             break;
                                                         case 1:
-                                                            cartrnsfrms.Add(new Transform(translation3 * rotation3), path3);
+                                                            carTransforms.Add(new Transform(translation3 * rotation3), path3);
                                                             break;
                                                     }
                                                     switch (t)
                                                     {
                                                         case -1:
-                                                            cartrnsfrms.Add(new Transform(translation1), path1);
+                                                            carTransforms.Add(new Transform(translation1), path1);
                                                             break;
                                                         case 1:
-                                                            cartrnsfrms.Add(new Transform(translation2 * rotation2), path2);
+                                                            carTransforms.Add(new Transform(translation2 * rotation2), path2);
                                                             break;
                                                     }
                                                     mtx[rowNew + k, colNew + t] = 2;
@@ -256,11 +260,11 @@ namespace ParkingDemo.Utils
 
                                 foreach (var cell in allBridgePathCells)
                                 {
-                                    foreach (var path in cartrnsfrms.Paths)
+                                    foreach (var path in carTransforms.Paths)
                                     {
                                         if (path.Indices[1] == cell.row && path.Indices[2] == cell.col)
                                         {
-                                            // cartrnsfrms.RemovePath(path);
+                                            // carTransfroms.RemovePath(path);
                                             remomvingPaths.Add(path);
                                             break;
                                         }
@@ -271,7 +275,7 @@ namespace ParkingDemo.Utils
 
                                 foreach (var path in remomvingPaths)
                                 {
-                                    cartrnsfrms.RemovePath(path);
+                                    carTransforms.RemovePath(path);
                                     // remomvingPaths.Add(path);
                                 }
                             }

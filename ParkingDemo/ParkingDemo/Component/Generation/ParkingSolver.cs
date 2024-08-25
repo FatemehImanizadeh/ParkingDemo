@@ -54,13 +54,13 @@ namespace ParkingDemo
                 var grid = parking.PlanPointsGrid;
                 var cellstart = parking.PathStartCell;
                 var cellEnd = parking.RampEndCell;
-                var firstpathcell = new int[2] { cellstart.row, cellstart.col };
+                var firstpathcell = new ParkingUtils.PathInfo.Cell(cellstart.row, cellstart.col);  
                 var plantomatrix = parking.PlanMatrix;
                 var cells = parking.PlanCells;
                 ///
                 var cellscount = cells.BranchCount;
-                var cartransforms = new DataTree<Transform>();
-                var mainpathpts = new DataTree<Point3d>();
+                var cartransforms = parking.CarTransforms;
+                var mainpathpts = parking.PathPoints; 
                 var pathindex = 0;
                 var currentpathitemcount = 0;
                 var pathptsloc = new DataTree<int[]>();
@@ -70,22 +70,25 @@ namespace ParkingDemo
                 // bool gno = GH_Convert(ghgrid, ref grid, GH_Conversion.Both);
                 Stopwatch stopwatch = new Stopwatch();
                 stopwatch.Start();
-                ParkingUtils.pathfinder(plantomatrix, firstpathcell, grid, ref cartransforms, mainpathpts, ref pathindex, ref currentpathitemcount, pathptsloc, ref startcellfindingattemt, ref parkingpaths);
+                ParkingUtils.PathFinder(parking, plantomatrix, firstpathcell, grid, ref cartransforms, mainpathpts, ref pathindex, ref currentpathitemcount, pathptsloc, ref startcellfindingattemt, ref parkingpaths);
                 int iteration = 0;
                 var ts = stopwatch.ElapsedMilliseconds.ToString();
                 Debug.WriteLine(ts + "ms");
                 while (ParkingUtils.emptycell(plantomatrix) > Math.Max(cellscount / 10, 4) && iteration < 400 && startcellfindingattemt < 100)
                 {
                     iteration++;
-                    ParkingUtils.pathfinder(plantomatrix, firstpathcell, grid, ref cartransforms, mainpathpts, ref pathindex, ref currentpathitemcount, pathptsloc, ref startcellfindingattemt, ref parkingpaths);
+                    ParkingUtils.PathFinder(parking, plantomatrix, firstpathcell, grid, ref cartransforms, mainpathpts, ref pathindex, ref currentpathitemcount, pathptsloc, ref startcellfindingattemt, ref parkingpaths);
                 }
-                mainPathConnection.CreateConnectionPath(plantomatrix, grid, parkingpaths, cartransforms, mainpathpts, parking);
+                parking.ParkingPaths = parkingpaths;
+              //  mainPathConnection.CreateConnectionPath(plantomatrix, grid, parkingpaths, cartransforms, mainpathpts, parking);
                 /*  DA.SetDataTree(0, mainpathpts);
                   DA.SetDataTree(1, cartransforms);
                   DA.SetDataList(2, parkingpaths);
                   DA.SetData(3, plantomatrix);*/
                 /////
                 var emptyCells = ParkingUtils.emptycell(plantomatrix);
+                ParkingUtils.SetParkingStartCell(parking); 
+
                 parking.PlanMatrix = plantomatrix;
                 parking.CarTransforms = cartransforms;
                 parking.PathPoints = mainpathpts;
@@ -104,6 +107,7 @@ namespace ParkingDemo
                 }
                 DA.SetData(0, parking);
                 DA.SetData(1, Generations);
+                
             }
         }
         protected override System.Drawing.Bitmap Icon => ParkingDemo.Properties.Resources.ParkingSolver;

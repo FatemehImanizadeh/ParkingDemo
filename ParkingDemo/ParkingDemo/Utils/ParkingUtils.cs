@@ -20,6 +20,8 @@ using Grasshopper.Kernel.Special;
 using Grasshopper.Kernel.Geometry.Voronoi;
 using static ParkingDemo.ParkingUtils.PathInfo;
 using Cell = ParkingDemo.ParkingUtils.PathInfo.Cell;
+using ParkingDemo.Utils;
+using System.Data.SqlTypes;
 
 namespace ParkingDemo
 {
@@ -70,6 +72,16 @@ namespace ParkingDemo
                     return num - num % divisor;
             }
         }
+        public static void SetParkingStartCell(Parking Parking)
+        {
+            var grid = Parking.PlanPointsGrid;
+            var startCellpt = grid.Branch(Parking.PathStartCell.row)[Parking.PathStartCell.col];
+            var startRecBase = startCellpt + new Vector3d(-2.5, -2.5, 0);
+            var startCellPlane = Plane.WorldXY;
+            startCellPlane.Origin = startRecBase;
+            var startCellRec = new Rectangle3d(startCellPlane, 5, 5);
+            Parking.ParkingStartCell = startCellRec;
+        }
         public static DataTree<Point3d> CreateGrid(int row, int col, double size)
         {
             var pt_grid = new DataTree<Point3d>();
@@ -100,7 +112,7 @@ namespace ParkingDemo
                 }
             return mtx;
         }
-        public static Matrix GridToMatrix2( DataTree<Point3d> ptGrid, int row, int col, Curve Outline, Curve Exclude)
+        public static Matrix GridToMatrix2(DataTree<Point3d> ptGrid, int row, int col, Curve Outline, Curve Exclude)
         {
             var mtx = new Matrix(row, col);
             for (int i = 0; i < row; i++)
@@ -110,18 +122,18 @@ namespace ParkingDemo
                     var containment2 = Exclude.Contains(ptGrid.Branch(i)[j], Plane.WorldXY, 0.01);
                     if (containment2 == PointContainment.Inside)
                     {
-                        mtx[i, j] = 5; 
-                      
+                        mtx[i, j] = 5;
+
                     }
                     else
                     {
-                        if(containment1 == PointContainment.Inside)
+                        if (containment1 == PointContainment.Inside)
                         {
-                            mtx[i, j] = 1; 
+                            mtx[i, j] = 1;
                         }
                         else
                         {
-                            mtx[i, j] = 0; 
+                            mtx[i, j] = 0;
                         }
                     }
                 }
@@ -135,9 +147,9 @@ namespace ParkingDemo
                 for (int j = 0; j < col; j++)
                 {
                     var containment1 = Outline.Contains(ptGrid.Branch(i)[j], Plane.WorldXY, 0.01);
-                    Parallel.For(0, Exclutions.Count, index =>
+                   foreach(var crv in Exclutions)
                     {
-                        var excludeCrv = Exclutions[index];
+                        var excludeCrv = crv;
                         var containment2 = excludeCrv.Contains(ptGrid.Branch(i)[j], Plane.WorldXY, 0.01);
                         if (containment2 == PointContainment.Inside)
                         {
@@ -152,6 +164,7 @@ namespace ParkingDemo
                         {
                             if (containment1 == PointContainment.Inside)
                             {
+                                if (mtx[i,j ] != 5)
                                 mtx[i, j] = 1;
                             }
                             else
@@ -159,14 +172,24 @@ namespace ParkingDemo
                                 mtx[i, j] = 0;
                             }
                         }
-                    });
+                    }
                 }
             ExcludeCells = excludeCells;
             return mtx;
         }
         public static void ResetMatrixElementsAfterRamp(Matrix PlanMatrix)
         {
-            Parallel.For(0, PlanMatrix.RowCount, i => { Parallel.For(0, PlanMatrix.ColumnCount, j => { PlanMatrix[i, j] = (PlanMatrix[i, j] == 5) ? 0 : PlanMatrix[i,j]; }); });
+            for (int i = 0; i < PlanMatrix.RowCount; i++)
+            {
+                for (int j = 0; j< PlanMatrix.ColumnCount; j++)
+                {
+                    if (PlanMatrix[i, j] == 5 || PlanMatrix[i, j] == 4)
+                    {
+                        PlanMatrix[i, j] = 0;
+                    }
+                }
+            }
+           // Parallel.For(0, PlanMatrix.RowCount, i => { Parallel.For(0, PlanMatrix.ColumnCount, j => { PlanMatrix[i, j] = ((PlanMatrix[i, j] == 5) || (PlanMatrix[i, j] == 4)) ? 0 : PlanMatrix[i, j]; }); });
         }
         public static DataTree<Rectangle3d> CellularOutline(DataTree<Point3d> ptGrid, Matrix Gridmtx)
         {
@@ -540,13 +563,13 @@ namespace ParkingDemo
                                     var colvalidindex = CheckMatrix.GetValidIndex(col, mtx.ColumnCount);
                                     var matrixitem = CheckMatrix.GetMatrixItem(mtx, rowvalidindex, colvalidindex);
                                     var emptyAdjacencies = 0;
-                                    if (ramptypes.Branch(t).IndexOf(pt) == ramptypes.Branch(t).Count - 1& (t==1 || t==2 || t==3))
+                                    if (ramptypes.Branch(t).IndexOf(pt) == ramptypes.Branch(t).Count - 1 & (t == 1 || t == 2 || t == 3))
                                     {
                                         var up = CheckMatrix.GetMatrixItem(mtx, rowvalidindex - 1, colvalidindex);
                                         var right = CheckMatrix.GetMatrixItem(mtx, rowvalidindex, colvalidindex - 1);
                                         var left = CheckMatrix.GetMatrixItem(mtx, rowvalidindex, colvalidindex + 1);
                                         var down = CheckMatrix.GetMatrixItem(mtx, rowvalidindex + 1, colvalidindex);
-                                        
+
                                         if (up == 1)
                                         {
                                             emptyAdjacencies++;
@@ -564,7 +587,7 @@ namespace ParkingDemo
                                             emptyAdjacencies++;
                                         }
                                         if (matrixitem != -1)
-                                            if (matrixitem != 0 && matrixitem != 5 && emptyAdjacencies >=3 )
+                                            if (matrixitem != 0 && matrixitem != 5 && emptyAdjacencies >= 3)
                                             {
                                                 num++;
                                             }
@@ -577,8 +600,8 @@ namespace ParkingDemo
                                                 num++;
                                             }
                                     }
-                                   
-                                    
+
+
                                 }
                                 if (num == ramptypes.Branch(t).Count)
                                 {
@@ -635,14 +658,16 @@ namespace ParkingDemo
                 fistpathcell = startcell;
             }
         }
-        public static void pathfinder(Matrix mtx, int[] startcell,
+        public static void PathFinder(Parking Parking, Matrix mtx, Cell startcell,
             DataTree<Point3d> grid, ref DataTree<Transform> cartrnsfrms, DataTree<Point3d> mainpathpts, ref int pathindex, ref int currentpathitemcount, DataTree<int[]> pathptsloc, ref int startcellfindingattempt, ref List<ParkingUtils.PathInfo.ParkingPath> parkingpaths)
         {
+           // var mtx = Parking.PlanMatrix; 
+            
             //startcellfindignattemp: the number of times we remove a pathindex the iteration for adding a start cell to the algorithm is calculated and if gets higher than a specific value it seems out attempt to find a new path is useless and it's better to jump outside algorithm with the current result!!!!
             //pathptsloc: for saving the n,m location of each path point based on the pathindex (I use this information in the PathConnection algorithm)
             //var cartransforms to return correspinding transformation matrix of each cell that has a car inside of the car base curve
-            var n = startcell[0];
-            var m = startcell[1];
+            var n = startcell.row;
+            var m = startcell.col;
             //mainpathpts.Add(grid.Branch(n)[m], path);
             // in below i want to check if we have no parking path in out list of paths then this is the first run of out pathfinder algorithem
             // so we should create a parking path and create list of cells to plac path cells inside that. 
@@ -738,11 +763,15 @@ namespace ParkingDemo
             // we can add the list of paths as an out variable in pathfinder method so it will update in each iteration. 
             if ((adjacencynum.Max() > 2))
             {
+                //!!!!!!
+                var pathNew = new GH_Path(pathindex, n, m);
+                mainpathpts.Add(grid.Branch(n)[m], pathNew);
                 double max = adjacencynum.Max();
                 List<int> indices = Enumerable.Range(0, adjacencynum.Count).Where(i => adjacencynum[i] == max).ToList();
                 Random random = new Random();
                 int randomIndex = indices[random.Next(indices.Count)];
                 nextcell = randomIndex;
+
                 // in here to locate the car blocks in the right orientation in the plan we should rotate the block in each case based on
                 // the position of cell and also change the basis of the block so that it would be placed in the right position
                 // rotation for case 1 is 0 degree because we assume that the input block in standard for the case 1 orientation
@@ -837,8 +866,8 @@ namespace ParkingDemo
                 }
                 n = nextn;
                 m = nextm;
-                startcell[0] = n;
-                startcell[1] = m;
+                startcell.row = n;
+                startcell.col = m;
                 //....
                 var nwecell = new PathInfo.Cell(n, m, parkingpaths[pathindex]);
                 parkingpaths[pathindex].cells.Add(nwecell);
@@ -870,11 +899,11 @@ namespace ParkingDemo
                             carTrnsfrmsToRemove.Add(p);
                         }
                     }
-                    foreach(var p in mainPathPtsToRemove)
+                    foreach (var p in mainPathPtsToRemove)
                     {
                         mainpathpts.RemovePath(p);
                     }
-                    foreach(var p in carTrnsfrmsToRemove)
+                    foreach (var p in carTrnsfrmsToRemove)
                     {
                         cartrnsfrms.RemovePath(p);
                     }
@@ -898,9 +927,10 @@ namespace ParkingDemo
                 newparkingpath.cells = new List<PathInfo.Cell>();
                 pathindex++;
                 currentpathitemcount = 0;
-                startcell[0] = newstartcell[0];
-                startcell[1] = newstartcell[1];
+                startcell.row = newstartcell[0];
+                startcell.col = newstartcell[1];
                 parkingpaths[pathindex].cells.Add(new PathInfo.Cell(newstartcell[0], newstartcell[1], parkingpaths[pathindex]));
+
                 //var allpathpts = new DataTree<Point3d>(mainpathpts);
                 //allpathpts.Flatten();
                 //do
@@ -985,7 +1015,7 @@ namespace ParkingDemo
                 ConnectionPath = 1
             }
         }
-      
+
 
 
         public static int ManhatanDistance(int[] p1, int[] p2)
@@ -1050,6 +1080,6 @@ namespace ParkingDemo
             }
             return value;
         }
-        
+
     }
 }

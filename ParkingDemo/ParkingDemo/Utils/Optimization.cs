@@ -34,8 +34,7 @@ namespace ParkingDemo.Utils
         public static double OptimizationFunction(Optimization Optimization, Parking Parking )
         {
             double Score = Optimization.LotNumW * (float) Parking.LotNumber  - Optimization.PathLenW * (float)Parking.PathCellNumber - Optimization.NonFuncW * (float)Parking.EmptyCells;
-
-            Score = 1/(1+ Math.Exp(-Score/15));
+            Score = 1/(1+ Math.Exp(-Score*5/Parking.PlanCellNum));
             Parking.Score = Score;
             return Score;
         }

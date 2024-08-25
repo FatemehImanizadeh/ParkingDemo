@@ -16,8 +16,10 @@ namespace ParkingDemo.Utils
         public int PathCellNumber { get; set; }
         public int PlanCellNum { get; set; }
         public int EmptyCells { get; set; }
-        public DataTree<Transform> CarTransforms { get; set; }
-        public DataTree<Point3d> PathPoints { get; set; }
+        private DataTree<Transform> _CarTransforms = new DataTree<Transform>();
+        public DataTree<Transform> CarTransforms { get => _CarTransforms;  set { _CarTransforms = value; } }
+        private DataTree<Point3d> _PathPoints = new DataTree<Point3d>(); 
+        public DataTree<Point3d> PathPoints { get => _PathPoints;  set { this._PathPoints = value; } }
         public double Score { get; set; }
         private Guid _parkingID = Guid.NewGuid();
         private bool _IsGenerationValid = true;
@@ -26,8 +28,12 @@ namespace ParkingDemo.Utils
         public List<Rectangle3d> ExcludeCells
         {
             get { return _ExcludeCells; }
-            set { _ExcludeCells = value; }
+            set { _ExcludeCells = value;}
         }
+        private List<ParkingUtils.PathInfo.ParkingPath> _ParkingPaths = new List<ParkingUtils.PathInfo.ParkingPath>();
+ 
+        public List<ParkingUtils.PathInfo.ParkingPath> ParkingPaths { get=> _ParkingPaths; set { _ParkingPaths = value; } }
+        public Rectangle3d ParkingStartCell { get; set; }
         public DataTree<Point3d> PlanPointsGrid { get; set; }
         public DataTree<Rectangle3d>PlanCells { get; set; }
         public Matrix PlanMatrix { get; set; }
