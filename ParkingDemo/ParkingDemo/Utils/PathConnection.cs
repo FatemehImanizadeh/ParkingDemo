@@ -65,7 +65,7 @@ namespace ParkingDemo.Utils
                             bridgePathColBased.TypeValue = BridgePath.Type.ColBased;
                             var lotgain2 =mainPathConnection.LotGain(PathFirst.cells[i], PathSecond.cells[j], mtx, false, out bool isPossible2);
                             bridgePathColBased.GainValue = lotgain2;
-                            if (isPossible2)
+                            if (isPossible2 )
                             {
                                 bridgePathValuesDic.Add(bridgePathColBased, lotgain2);
                             }
@@ -79,6 +79,7 @@ namespace ParkingDemo.Utils
                     var ran = new Random();
                     var ranIndex = ran.Next(allMazBridges.ToList().Count);
                     selectedBridgePath = allMazBridges.ToList()[ranIndex];
+                    var x = selectedBridgePath.GainValue; 
                 }
                 else
                 {
@@ -145,6 +146,7 @@ namespace ParkingDemo.Utils
                                             var newint = new int[2];
                                             var row = n1 + step;
                                             var col = m1;
+                                            if (mtx[row, col] != 0)
                                             allBridgePathCells.Add(new PathInfo.Cell(row, col));
                                         }
                                     }
@@ -157,7 +159,9 @@ namespace ParkingDemo.Utils
                                             var newint2 = new int[2];
                                             var row = n2;
                                             var col = m1 + step;
-                                            allBridgePathCells.Add(new PathInfo.Cell(row, col));
+                                            if (mtx[row, col] != 0)
+
+                                                allBridgePathCells.Add(new PathInfo.Cell(row, col));
                                         }
                                     }
                                 }
@@ -172,7 +176,8 @@ namespace ParkingDemo.Utils
                                             var newint2 = new int[2];
                                             var row = n1;
                                             var col = m1 + step;
-                                            allBridgePathCells.Add(new PathInfo.Cell(row, col));
+                                            if (mtx[row, col] != 0)
+                                                allBridgePathCells.Add(new PathInfo.Cell(row, col));
                                         }
                                     }
                                     if (n2 != n1)
@@ -184,7 +189,9 @@ namespace ParkingDemo.Utils
                                             var newint = new int[2];
                                             var row = n1 + step;
                                             var col = m2;
-                                            allBridgePathCells.Add(new PathInfo.Cell(row, col));
+                                            if (mtx[row, col] != 0)
+
+                                                allBridgePathCells.Add(new PathInfo.Cell(row, col));
                                         }
                                     }
                                 }
@@ -319,10 +326,10 @@ namespace ParkingDemo.Utils
                         var newint = new int[2];
                         newint[0] = n1 + step;
                         newint[1] = m1;
-                        if (mtx[n1 + step, m1] == 4 || mtx[n1 + step, m1] == 0)
+                        if (mtx[n1 + step, m1] == 4 | mtx[n1 + step, m1] == 0)
                         {
                             ispathpossible = false;
-                            return int.MinValue;
+                           // return int.MinValue;
                         }
 
                         allbridgepathptsnbased.Append(newint);
@@ -340,10 +347,10 @@ namespace ParkingDemo.Utils
                         newint2[1] = m1 + step;
                         allbridgepathptsnbased.Append(newint2);
 
-                        if (mtx[n2, step + m1] == 4 || mtx[n2, step + m1] == 0)
+                        if (mtx[n2, step + m1] == 4 | mtx[n2, step + m1] == 0)
                         {
                             ispathpossible = false;
-                            return int.MinValue;
+                            //return int.MinValue;
                         }
 
 
@@ -468,7 +475,6 @@ namespace ParkingDemo.Utils
             }
 
             else
-
             {
 
 
@@ -484,7 +490,7 @@ namespace ParkingDemo.Utils
                         if (mtx[n1, m1 + step] == 4 || mtx[n1, step + m1] == 0)
                         {
                             ispathpossible = false;
-                            return int.MinValue;
+                           // return int.MinValue;
                         }
                         allbridgepathptsnbased.Append(newint2);
                     }
@@ -501,7 +507,7 @@ namespace ParkingDemo.Utils
                         if (mtx[n1 + step, m1] == 4 || mtx[n1 + step, m1] == 0)
                         {
                             ispathpossible = false;
-                            return int.MinValue;
+                            //return int.MinValue;
                         }
                         allbridgepathptsnbased.Append(newint);
                     }
@@ -616,8 +622,13 @@ namespace ParkingDemo.Utils
                 }
             }
 
-
+            if(ispathpossible)
             return nbasedgain;
+            else
+            {
+                return -100; 
+
+            }
         }
 
     }

@@ -80,7 +80,7 @@ namespace ParkingDemo
             var startCellPlane = Plane.WorldXY;
             startCellPlane.Origin = startRecBase;
             var startCellRec = new Rectangle3d(startCellPlane, 5, 5);
-            Parking.ParkingStartCell = startCellRec;
+            Parking.ParkingEntranceCell = startCellRec;
         }
         public static DataTree<Point3d> CreateGrid(int row, int col, double size)
         {
@@ -228,9 +228,8 @@ namespace ParkingDemo
         }
         return allcells;
         }*/
-        public static int[] FirstPathCell(Matrix mtx)
+        public static PathInfo.Cell FirstPathCell(Matrix mtx)
         {
-            var startcell = new int[2];
             int cellrow = 0;
             int cellcol = 0;
             var rows = mtx.RowCount;
@@ -244,6 +243,7 @@ namespace ParkingDemo
                 iter++;
                 var ran0 = new Random();
                 var ran1 = new Random();
+                
                 cellrow = ran0.Next(rows);
                 cellcol = ran1.Next(cols);
                 if (mtx[cellrow, cellcol] == 1)
@@ -262,8 +262,50 @@ namespace ParkingDemo
                             }
                         }
             }
-            startcell[0] = cellrow;
-            startcell[1] = cellcol;
+           
+            var startcell = new PathInfo.Cell(cellrow, cellcol); 
+            return startcell;
+        }
+        public static PathInfo.Cell FirstPathCell2(Parking Parking)
+        {
+            var mtx = Parking.PlanMatrix;
+            ParkingUtils.ExtraCellFinder(Parking);
+            var nonFunctionalCells = Parking.NotFunctionalCells;
+            var randomIndex = new Random();
+            
+            
+            int cellrow = 0;
+            int cellcol = 0;
+            var rows = mtx.RowCount;
+            var cols = mtx.ColumnCount;
+            var iter = 0;
+            var emptyadjacentcells = 0;
+            //var matrixitem = -1;
+            while ((emptyadjacentcells < 1) && /*(mtx[cellrow, cellcol] != 4 to be not ramp: this is additional and useless scince when it is supposed to be 1 it definitely wont be 4!!!!!!*/  iter < 650)
+            {
+                var randomCell = nonFunctionalCells[randomIndex.Next(0, nonFunctionalCells.Count)];
+                emptyadjacentcells = 0;
+                iter++;
+                cellrow = randomCell.row;
+                cellcol = randomCell.col;
+                if (mtx[cellrow, cellcol] == 1)
+                    for (int i = -1; i < 2; i++)
+                        for (int j = -1; j < 2; j++)
+                        {
+                            if (Math.Abs(i) + Math.Abs(j) == 1)
+                            {
+                                var row = cellrow + i;
+                                var col = cellcol + j;
+                                var rowvalidindex = ParkingUtils.CheckMatrix.GetValidIndex(row, mtx.RowCount);
+                                var colvalidindex = ParkingUtils.CheckMatrix.GetValidIndex(col, mtx.ColumnCount);
+                                var matrixitem = ParkingUtils.CheckMatrix.GetMatrixItem(mtx, rowvalidindex, colvalidindex);
+                                if (matrixitem == 1)
+                                { emptyadjacentcells++; }
+                            }
+                        }
+            }
+
+            var startcell = new PathInfo.Cell(cellrow, cellcol);
             return startcell;
         }
         //int side; 0:north/ 1:west/ 2:east/ 3:south
@@ -658,28 +700,43 @@ namespace ParkingDemo
                 fistpathcell = startcell;
             }
         }
-        public static void PathFinder(Parking Parking, Matrix mtx, Cell startcell,
-            DataTree<Point3d> grid, ref DataTree<Transform> cartrnsfrms, DataTree<Point3d> mainpathpts, ref int pathindex, ref int currentpathitemcount, DataTree<int[]> pathptsloc, ref int startcellfindingattempt, ref List<ParkingUtils.PathInfo.ParkingPath> parkingpaths)
+        public static void PathFinder(Parking Parking,  ref int startCellfindingattempt)
         {
-           // var mtx = Parking.PlanMatrix; 
-            
-            //startcellfindignattemp: the number of times we remove a pathindex the iteration for adding a start cell to the algorithm is calculated and if gets higher than a specific value it seems out attempt to find a new path is useless and it's better to jump outside algorithm with the current result!!!!
+
+            var mtx = Parking.PlanMatrix;
+            var startCell = Parking.CurrentStartCell;
+            var grid = Parking.PlanPointsGrid; 
+            var carTransforms = Parking.CarTransforms;
+            var mainPathPts = Parking.PathPoints;
+            var pathindex = Parking.CurrentPathIndex;
+            var parkingPaths = Parking.ParkingPaths;
+            var currentpathitemcount = Parking.CurrentPathItemCount;
+            if (mtx[startCell.row, startCell.col] == 0 || mtx[startCell.row, startCell.col] == 2)
+            {
+
+                var cell = ParkingUtils.FirstPathCell(mtx);
+                startCell = cell;
+                Parking.CurrentStartCell = startCell;
+                if (mtx[startCell.row, startCell.col] == 0 || mtx[startCell.row, startCell.col] == 2)
+                    return;
+            }
+            //startCellfindignattemp: the number of times we remove a pathindex the iteration for adding a start cell to the algorithm is calculated and if gets higher than a specific value it seems out attempt to find a new path is useless and it's better to jump outside algorithm with the current result!!!!
             //pathptsloc: for saving the n,m location of each path point based on the pathindex (I use this information in the PathConnection algorithm)
             //var cartransforms to return correspinding transformation matrix of each cell that has a car inside of the car base curve
-            var n = startcell.row;
-            var m = startcell.col;
-            //mainpathpts.Add(grid.Branch(n)[m], path);
+            var n = startCell.row;
+            var m = startCell.col;
+            //mainPathPts.Add(grid.Branch(n)[m], path);
             // in below i want to check if we have no parking path in out list of paths then this is the first run of out pathfinder algorithem
             // so we should create a parking path and create list of cells to plac path cells inside that. 
-            if (parkingpaths.Count == 0)
+            if (parkingPaths.Count == 0)
             {
                 var parkingpath = new PathInfo.ParkingPath();
                 var cells1 = new List<PathInfo.Cell>();
                 parkingpath.cells = cells1;
-                parkingpaths.Add(parkingpath);
-                var pathcell = new PathInfo.Cell(n, m, parkingpaths[0]);
+                parkingPaths.Add(parkingpath);
+                var pathcell = new PathInfo.Cell(n, m, parkingPaths[0]);
                 parkingpath.cells.Add(pathcell);
-                mainpathpts.Add(grid.Branch(n)[m], new GH_Path(pathindex, n, m));
+                mainPathPts.Add(grid.Branch(n)[m], new GH_Path(pathindex, n, m));
             }
             mtx[n, m] = 3;
             var pathpts = new Point3d[4];
@@ -736,7 +793,7 @@ namespace ParkingDemo
             // some dose of probability may conclude to interesting results
             var path = new GH_Path(pathindex);
             int nextcell;
-            var allmainpathptslocs = new DataTree<int[]>();
+            var allmainPathPtslocs = new DataTree<int[]>();
             var vplus = new Vector3d(0, 5, 0);
             var vminus = new Vector3d(0, -5, 0);
             var hplus = new Vector3d(5, 0, 0);
@@ -761,11 +818,11 @@ namespace ParkingDemo
             // I will skip this step bcz the code is full of drawbacks and it's better to fix the previous ones 
             // but just to remember fix it in following steps:)))))))))))
             // we can add the list of paths as an out variable in pathfinder method so it will update in each iteration. 
-            if ((adjacencynum.Max() > 2))
+            if ((adjacencynum.Max() >2))
             {
                 //!!!!!!
                 var pathNew = new GH_Path(pathindex, n, m);
-                mainpathpts.Add(grid.Branch(n)[m], pathNew);
+                mainPathPts.Add(grid.Branch(n)[m], pathNew);
                 double max = adjacencynum.Max();
                 List<int> indices = Enumerable.Range(0, adjacencynum.Count).Where(i => adjacencynum[i] == max).ToList();
                 Random random = new Random();
@@ -782,20 +839,19 @@ namespace ParkingDemo
                     case 0:
                         if (n - 1 >= 0)
                         {
-                            mtx[n - 1, m] = 3; mainpathpts.Add(grid.Branch(n - 1)[m], path0);
-                            pathptsloc.Add(new int[] { n - 1, m }, path);
+                            mtx[n - 1, m] = 3; mainPathPts.Add(grid.Branch(n - 1)[m], path0);
                         }
                         if (m - 1 >= 0)
                         {
-                            if (mtx[n, m - 1] == 1) { mtx[n, m - 1] = 2; cartrnsfrms.Add(translation1, path1); }
+                            if (mtx[n, m - 1] == 1) { mtx[n, m - 1] = 2; carTransforms.Add(translation1, path1); }
                         }
                         if (m + 1 < mtx.ColumnCount)
                         {
-                            if (mtx[n, m + 1] == 1) { mtx[n, m + 1] = 2; cartrnsfrms.Add(translation2 * rotation2, path2); }
+                            if (mtx[n, m + 1] == 1) { mtx[n, m + 1] = 2; carTransforms.Add(translation2 * rotation2, path2); }
                         }
                         if (n + 1 < mtx.RowCount)
                         {
-                            if (mtx[n + 1, m] == 1) { mtx[n + 1, m] = 2; cartrnsfrms.Add(translation3 * rotation3, path3); }
+                            if (mtx[n + 1, m] == 1) { mtx[n + 1, m] = 2; carTransforms.Add(translation3 * rotation3, path3); }
                         }
                         nextn = n - 1;
                         nextm = m;
@@ -803,20 +859,19 @@ namespace ParkingDemo
                     case 1:
                         if (n - 1 >= 0)
                         {
-                            if (mtx[n - 1, m] == 1) { mtx[n - 1, m] = 2; cartrnsfrms.Add(translation0 * rotation0, path0); }
+                            if (mtx[n - 1, m] == 1) { mtx[n - 1, m] = 2; carTransforms.Add(translation0 * rotation0, path0); }
                         }
                         if (m - 1 >= 0)
                         {
-                            mtx[n, m - 1] = 3; mainpathpts.Add(grid.Branch(n)[m - 1], path1);
-                            pathptsloc.Add(new int[] { n, m - 1 }, path);
+                            mtx[n, m - 1] = 3; mainPathPts.Add(grid.Branch(n)[m - 1], path1);
                         }
                         if (m + 1 < mtx.ColumnCount)
                         {
-                            if (mtx[n, m + 1] == 1) { mtx[n, m + 1] = 2; cartrnsfrms.Add(translation2 * rotation2, path2); }
+                            if (mtx[n, m + 1] == 1) { mtx[n, m + 1] = 2; carTransforms.Add(translation2 * rotation2, path2); }
                         }
                         if (n + 1 < mtx.RowCount)
                         {
-                            if (mtx[n + 1, m] == 1) { mtx[n + 1, m] = 2; cartrnsfrms.Add(translation3 * rotation3, path3); }
+                            if (mtx[n + 1, m] == 1) { mtx[n + 1, m] = 2; carTransforms.Add(translation3 * rotation3, path3); }
                         }
                         nextn = n;
                         nextm = m - 1;
@@ -824,20 +879,19 @@ namespace ParkingDemo
                     case 2:
                         if (n - 1 >= 0)
                         {
-                            if (mtx[n - 1, m] == 1) { mtx[n - 1, m] = 2; cartrnsfrms.Add(translation0 * rotation0, path0); }
+                            if (mtx[n - 1, m] == 1) { mtx[n - 1, m] = 2; carTransforms.Add(translation0 * rotation0, path0); }
                         }
                         if (m - 1 >= 0)
                         {
-                            if (mtx[n, m - 1] == 1) { mtx[n, m - 1] = 2; cartrnsfrms.Add(translation1, path1); }
+                            if (mtx[n, m - 1] == 1) { mtx[n, m - 1] = 2; carTransforms.Add(translation1, path1); }
                         }
                         if (m + 1 < mtx.ColumnCount)
                         {
-                            mtx[n, m + 1] = 3; mainpathpts.Add(grid.Branch(n)[m + 1], path2);
-                            pathptsloc.Add(new int[] { n, m + 1 }, path);
+                            mtx[n, m + 1] = 3; mainPathPts.Add(grid.Branch(n)[m + 1], path2);
                         }
                         if (n + 1 < mtx.RowCount)
                         {
-                            if (mtx[n + 1, m] == 1) { mtx[n + 1, m] = 2; cartrnsfrms.Add(translation3 * rotation3, path3); }
+                            if (mtx[n + 1, m] == 1) { mtx[n + 1, m] = 2; carTransforms.Add(translation3 * rotation3, path3); }
                         }
                         nextn = n;
                         nextm = m + 1;
@@ -845,20 +899,19 @@ namespace ParkingDemo
                     case 3:
                         if (n - 1 >= 0)
                         {
-                            if (mtx[n - 1, m] == 1) { mtx[n - 1, m] = 2; cartrnsfrms.Add(translation0 * rotation0, path0); }
+                            if (mtx[n - 1, m] == 1) { mtx[n - 1, m] = 2; carTransforms.Add(translation0 * rotation0, path0); }
                         }
                         if (m - 1 >= 0)
                         {
-                            if (mtx[n, m - 1] == 1) { mtx[n, m - 1] = 2; cartrnsfrms.Add(translation1, path1); }
+                            if (mtx[n, m - 1] == 1) { mtx[n, m - 1] = 2; carTransforms.Add(translation1, path1); }
                         }
                         if (m + 1 < mtx.ColumnCount)
                         {
-                            if (mtx[n, m + 1] == 1) { mtx[n, m + 1] = 2; cartrnsfrms.Add(translation2 * rotation2, path2); }
+                            if (mtx[n, m + 1] == 1) { mtx[n, m + 1] = 2; carTransforms.Add(translation2 * rotation2, path2); }
                         }
                         if (n + 1 < mtx.RowCount)
                         {
-                            mtx[n + 1, m] = 3; mainpathpts.Add(grid.Branch(n + 1)[m], path3);
-                            pathptsloc.Add(new int[] { n + 1, m }, path);
+                            mtx[n + 1, m] = 3; mainPathPts.Add(grid.Branch(n + 1)[m], path3);
                         }
                         nextn = n + 1;
                         nextm = m;
@@ -866,11 +919,11 @@ namespace ParkingDemo
                 }
                 n = nextn;
                 m = nextm;
-                startcell.row = n;
-                startcell.col = m;
+                startCell.row = n;
+                startCell.col = m;
                 //....
-                var nwecell = new PathInfo.Cell(n, m, parkingpaths[pathindex]);
-                parkingpaths[pathindex].cells.Add(nwecell);
+                var nwecell = new PathInfo.Cell(n, m, parkingPaths[pathindex]);
+                parkingPaths[pathindex].cells.Add(nwecell);
                 //...
                 currentpathitemcount++;
             }
@@ -879,11 +932,10 @@ namespace ParkingDemo
                 //in the code we may find some cells that satisfy our condition for the start cell but their neighbor can not satisfy the condition for continuing path. so we may have a number of paths with a single cell, to avoid this befor we jump to the next path we should check the number of elements in the current path and if the items are less than our defined number we should omit the current path and then jump to the next one. and also i reduce path index by 1 to reach the current index in path when I ++pathindex in the next step
                 if (currentpathitemcount < 2)
                 {
-                    parkingpaths.RemoveAt(pathindex);
-                    pathptsloc.RemovePath(path); //here we set the current pathindex to save the location of path cells only. and if the number of the cells in path is less than 3 we may omit the location of the path either.
+                    parkingPaths.RemoveAt(pathindex);
                     var mainPathPtsToRemove = new List<GH_Path>();
-                    var carTrnsfrmsToRemove = new List<GH_Path>();
-                    foreach (GH_Path p in mainpathpts.Paths)
+                    var carTransformsToRemove = new List<GH_Path>();
+                    foreach (GH_Path p in mainPathPts.Paths)
                     {
                         if (p.Indices[0] == pathindex)
                         {
@@ -891,53 +943,49 @@ namespace ParkingDemo
                             mainPathPtsToRemove.Add(p);
                         }
                     }
-                    foreach (GH_Path p in cartrnsfrms.Paths)
+                    foreach (GH_Path p in carTransforms.Paths)
                     {
                         if (p.Indices[0] == pathindex)
                         {
                             mtx[p.Indices[1], p.Indices[2]] = 1;// and the same as last part we should change the values of the neighbor cells to the path to 1 to use them in further steps. bcz we omitted the car transformations for those cells eighter.
-                            carTrnsfrmsToRemove.Add(p);
+                            carTransformsToRemove.Add(p);
                         }
                     }
                     foreach (var p in mainPathPtsToRemove)
                     {
-                        mainpathpts.RemovePath(p);
+                        mainPathPts.RemovePath(p);
                     }
-                    foreach (var p in carTrnsfrmsToRemove)
+                    foreach (var p in carTransformsToRemove)
                     {
-                        cartrnsfrms.RemovePath(p);
+                        carTransforms.RemovePath(p);
                     }
                     pathindex--;
-                    startcellfindingattempt++;
+                    startCellfindingattempt++;
                 }
                 else
                 {
                     if (n - 1 >= 0)
-                        if (mtx[n - 1, m] == 1) { mtx[n - 1, m] = 2; cartrnsfrms.Add(translation0 * rotation0, path0); }
+                        if (mtx[n - 1, m] == 1.0) { mtx[n - 1, m] = 2; carTransforms.Add(translation0 * rotation0, path0); }
                     if (m - 1 >= 0)
-                        if (mtx[n, m - 1] == 1) { mtx[n, m - 1] = 2; cartrnsfrms.Add(translation1, path1); }
+                        if (mtx[n, m - 1] == 1.0) { mtx[n, m - 1] = 2; carTransforms.Add(translation1, path1); }
                     if (m + 1 < mtx.ColumnCount)
-                        if (mtx[n, m + 1] == 1) { mtx[n, m + 1] = 2; cartrnsfrms.Add(translation2 * rotation2, path2); }
+                        if (mtx[n, m + 1] == 1.0) { mtx[n, m + 1] = 2; carTransforms.Add(translation2 * rotation2, path2); }
                     if (n + 1 < mtx.RowCount)
-                        if (mtx[n + 1, m] == 1) { mtx[n + 1, m] = 2; cartrnsfrms.Add(translation3 * rotation3, path3); }
+                        if (mtx[n + 1, m] == 1.0) { mtx[n + 1, m] = 2; carTransforms.Add(translation3 * rotation3, path3); }
                 }
                 var newstartcell = FirstPathCell(mtx);
                 var newparkingpath = new PathInfo.ParkingPath();
-                parkingpaths.Add(newparkingpath);
+                parkingPaths.Add(newparkingpath);
                 newparkingpath.cells = new List<PathInfo.Cell>();
                 pathindex++;
                 currentpathitemcount = 0;
-                startcell.row = newstartcell[0];
-                startcell.col = newstartcell[1];
-                parkingpaths[pathindex].cells.Add(new PathInfo.Cell(newstartcell[0], newstartcell[1], parkingpaths[pathindex]));
+                startCell = newstartcell; 
+                parkingPaths[pathindex].cells.Add(new PathInfo.Cell(newstartcell.row,newstartcell.col, parkingPaths[pathindex]));
 
-                //var allpathpts = new DataTree<Point3d>(mainpathpts);
-                //allpathpts.Flatten();
-                //do
-                //{
-                //
-                //} while (!allpathpts.Branch(0).Contains(grid.Branch(newstartcell[0])[newstartcell[1]]));		startcell[0]	5	int
             }
+            Parking.CurrentPathIndex = pathindex;
+            Parking.CurrentPathItemCount = currentpathitemcount; 
+            Parking.CurrentStartCell = startCell;
         }
         public class PathInfo
         {
@@ -1049,8 +1097,11 @@ namespace ParkingDemo
             var outline = Curve.CreateBooleanUnion(recsnew, 0.01);
             return outline[0];
         }
-        public static DataTree<Rectangle3d> ExtraCellFinder(Matrix mtx, DataTree<Rectangle3d> cells)
+        public static DataTree<Rectangle3d> ExtraCellFinder(Parking Parking)
         {
+            var mtx = Parking.PlanMatrix; 
+            var cells = Parking.PlanCells;
+            var planEmptyCells = new List<PathInfo.Cell>();
             var extracells = new DataTree<Rectangle3d>();
             for (int i = 0; i < mtx.RowCount; i++)
             {
@@ -1060,9 +1111,12 @@ namespace ParkingDemo
                     {
                         var path = new GH_Path(i, j);
                         extracells.Add(cells.Branch(i, j)[0], path);
+                        var cell = new PathInfo.Cell(i, j); 
+                        planEmptyCells.Add(cell);
                     }
                 }
-            }
+            } 
+            Parking.NotFunctionalCells = planEmptyCells; 
             return extracells;
         }
         public static int emptycell(Matrix mtx)

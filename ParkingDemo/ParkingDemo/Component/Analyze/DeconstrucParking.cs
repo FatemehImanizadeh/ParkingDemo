@@ -57,7 +57,7 @@ namespace ParkingDemo.Component.Analyze
             DA.SetDataTree(4, cells);
             DA.SetDataTree(5, sideCellsAddress);
             DA.SetDataList(6, parking.ExcludeCells);
-            DA.SetData(7, parking.ParkingStartCell);
+            DA.SetData(7, parking.ParkingEntranceCell);
             DA.SetData(8, outline);
             DA.SetDataList(9, rampInfo);
           //  DA.SetData(10, parking.ParkingPaths[0]);

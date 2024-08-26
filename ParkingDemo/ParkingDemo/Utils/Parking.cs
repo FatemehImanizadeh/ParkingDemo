@@ -1,5 +1,6 @@
 ﻿using Eto.Forms;
 using Grasshopper;
+using Grasshopper.Kernel.Special;
 using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
@@ -33,8 +34,16 @@ namespace ParkingDemo.Utils
         private List<ParkingUtils.PathInfo.ParkingPath> _ParkingPaths = new List<ParkingUtils.PathInfo.ParkingPath>();
  
         public List<ParkingUtils.PathInfo.ParkingPath> ParkingPaths { get=> _ParkingPaths; set { _ParkingPaths = value; } }
-        public Rectangle3d ParkingStartCell { get; set; }
-        public DataTree<Point3d> PlanPointsGrid { get; set; }
+        public Rectangle3d ParkingEntranceCell { get; set; }
+        public ParkingUtils.PathInfo.Cell CurrentStartCell { get; set; }
+        private int _CurrentPathIndex = 0;
+        private List<ParkingUtils.PathInfo.Cell> _NotFunctionalCells =new List<ParkingUtils.PathInfo.Cell>();
+        public List<ParkingUtils.PathInfo.Cell> NotFunctionalCells { get => _NotFunctionalCells; set { _NotFunctionalCells = value;  } }
+
+        public int CurrentPathIndex { get => _CurrentPathIndex; set { _CurrentPathIndex = value; } }
+        private int _CurrentPathItemCount = 0 ; 
+        public int CurrentPathItemCount { get => _CurrentPathItemCount; set { _CurrentPathItemCount = value; } }
+        public DataTree<Point3d> PlanPointsGrid { get; set; } 
         public DataTree<Rectangle3d>PlanCells { get; set; }
         public Matrix PlanMatrix { get; set; }
         public Curve Outline {  get; set; }

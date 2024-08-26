@@ -113,6 +113,7 @@ namespace ParkingDemo.Component.Start
             parking.SidePoints = allsidepts;
             parking.RampEndCell = new PathInfo.Cell(rampendcell[0], rampendcell[1]);
             parking.PathStartCell = new PathInfo.Cell(rampendcell[0], rampendcell[1]);
+            parking.CurrentStartCell = new PathInfo.Cell(rampendcell[0], rampendcell[1]);
             parking.RampInfo = rampinfo;
             DA.SetData(0, parking);
         }
