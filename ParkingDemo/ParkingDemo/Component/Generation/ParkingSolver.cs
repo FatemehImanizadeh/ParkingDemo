@@ -72,17 +72,18 @@ namespace ParkingDemo
                     iteration++;
                     ParkingUtils.PathFinder(parking,  ref startcellfindingattemt);
                 }
-               // mainPathConnection.CreateConnectionPath(parking);
+                mainPathConnection.CreateConnectionPath(parking);
                 var emptyCells = ParkingUtils.emptycell(plantomatrix);
-                ParkingUtils.SetParkingStartCell(parking); 
-                parking.PathCellNumber = parking.PathPoints.DataCount;
+                ParkingUtils.SetParkingStartCell(parking);
+                parking.PathCellNumber = parking.PathPoints.BranchCount;
                 parking.LotNumber = parking.CarTransforms.DataCount;
                 parking.EmptyCells = emptyCells;
                 var num2 = parking.PlanPointsGrid.DataCount;
                 parking.PlanCellNum = num2;
                 if (generationReset)
                     Generations = new GenerationCollection();
-                var optimization = new Optimization(); 
+                var optimization = new Optimization();
+                PathLength.GetPathLength(parking); 
                 Optimization.OptimizationFunction(optimization, parking);
                 if (parking.IsGenerationValid) 
                 {

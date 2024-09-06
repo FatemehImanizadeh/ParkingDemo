@@ -32,7 +32,8 @@ namespace ParkingDemo.Component.Analyze
             pManager.AddRectangleParameter("Parking Entrance Cell", "PE", "parking entrance cell", GH_ParamAccess.item); 
             pManager.AddCurveParameter("Plan Outline", "O", "plan outline", GH_ParamAccess.item);
             pManager.AddNumberParameter("RampInfo", "rampinfo", " ramp information: index0: side, index1: index of ramp start cell on selected side, index2: ramp type, index3: ramp orientation", GH_ParamAccess.list);
-            pManager.AddGenericParameter("Parkings Paths", "PP", "parking paths", GH_ParamAccess.item); 
+            pManager.AddGenericParameter("Parkings Paths", "PP", "parking paths", GH_ParamAccess.item);
+            pManager.AddLineParameter("PathLines", "PL", "parking path lines", GH_ParamAccess.list); 
         }
 
         protected override void SolveInstance(IGH_DataAccess DA)
@@ -60,7 +61,7 @@ namespace ParkingDemo.Component.Analyze
             DA.SetData(7, parking.ParkingEntranceCell);
             DA.SetData(8, outline);
             DA.SetDataList(9, rampInfo);
-          //  DA.SetData(10, parking.ParkingPaths[0]);
+            DA.SetDataList(10, parking.PathLines);
         }
         protected override System.Drawing.Bitmap Icon => ParkingDemo.Properties.Resources.DeconstructParking;
         public override Guid ComponentGuid

@@ -25,13 +25,16 @@ namespace ParkingDemo.Component.Analyze
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
             pManager.AddNumberParameter("Max Length", "ML", "max length", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Avg Length", "Avg", "average length", GH_ParamAccess.item);
         }
+
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             var parking = new Parking();
             DA.GetData(0, ref parking);
             var maxLength = PathLength.GetPathLength(parking); 
-            DA.SetData(0, maxLength);   
+            DA.SetData(0, maxLength);
+            DA.SetData(1, parking.TotalLengthGrade/parking.LotNumber); 
         }
         protected override System.Drawing.Bitmap Icon => null; 
        

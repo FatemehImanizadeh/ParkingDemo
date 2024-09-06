@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Eto.Forms;
+using Rhino.Geometry;
+using System;
 using System.CodeDom;
 using System.Collections.Generic;
 using System.Data.OleDb;
@@ -17,7 +19,12 @@ namespace ParkingDemo.Utils
             var mtx = Parking.PlanMatrix.Duplicate();
             
             var startCell = Parking.PathStartCell;
-            var visitedList = new List<int[]>(); 
+            var visitedList = new List<int[]>();
+            var totalLengthByCars = 0;
+            var totalPathCellsVisited = 0;
+            var grid = Parking.PlanPointsGrid;
+            var pathList = new List<Point3d>(); 
+            var linesList = new List<Line>();
             //var cellsGrade = new ParkingUtils.PathInfo.Cell[100][];
             var cellsGrade = new List<List<int[]>>(); 
             var currentGrade = 0;
@@ -30,28 +37,24 @@ namespace ParkingDemo.Utils
             cellsGrade.Add(cellsGrade0);
             cellsGrade[0] = cellsGrade0;
             var cell3 = cellsGrade0[0];
-            while (!visitedLast && iteration<40)
+            while (!visitedLast && iteration<400)
             {
-                
                 iteration++;
-                //ParkingUtils.PathInfo.Cell[] lastGradeArray = new ParkingUtils.PathInfo.Cell[1];
                 var  lastGradeArray = new List<int[]>();
-               lastGradeArray = cellsGrade[currentGrade];
+                lastGradeArray = cellsGrade[currentGrade];
                 var count = lastGradeArray.Count;
                 currentGrade++; 
                 var cell2 = lastGradeArray[0];       
-               
                var currentGradeList = new List<int[]>(); 
                 var index = 0;
-
                 if (!visitedLast)
                 {
                     foreach (var cell in lastGradeArray)
                     {
-                        
                         //var currentGradeList = new List<int[]>();
                         var row = cell[0];
                         var col = cell[1];
+                        var lastcellPt = grid.Branch(row) [col];
                         for (int i = -1; i < 2; i++)
                         {
                             for (int j = -1; j < 2; j++)
@@ -59,9 +62,8 @@ namespace ParkingDemo.Utils
                                 if (Math.Abs(i) + Math.Abs(j) == 1)
                                 {
                                     var item = ParkingUtils.CheckMatrix.GetMatrixItem(mtx, row + i, col + j);
-                                    if (item == 3)
+                                   
                                     {
-                                       // mtx[row + i, col + j] = 6;
                                         var cellnew = new ParkingUtils.PathInfo.Cell(row + i, col + j);
                                         var cellintNew = new int[2] {cellnew.row, cellnew.col};
                                         var itemIndex = -1; 
@@ -72,27 +74,40 @@ namespace ParkingDemo.Utils
                                         }
                                         if (itemIndex == -1)
                                         {
-                                            currentGradeList.Add(cellintNew);
-                                            visitedList.Add(cellintNew); 
+                                            visitedList.Add(cellintNew);
+                                            if (item == 3)
+                                            {
+                                                currentGradeList.Add(cellintNew);
+                                                totalPathCellsVisited++;
+                                                var newcellPt = grid.Branch(cellnew.row)[ cellnew.col];
+                                                var ln = new Line(lastcellPt, newcellPt); 
+                                                linesList.Add(ln);
+                                                 
+                                            }
+                                            if(item == 2)
+                                            {
+                                                totalLengthByCars += currentGrade; 
+                                            }
                                             index++;
                                         }
-                                       
                                     }
                                 }
                             }
                         }
                     }
                     var len = currentGradeList.Count;
-                    
                     if (len == 0 )
                     {
-                        return currentGrade;
                         visitedLast = true;
+                        Parking.TotalLengthGrade = totalLengthByCars;
+                        Parking.MaxLengthGrade = currentGrade;
+                        Parking.TotalPathCellsVisited = totalPathCellsVisited;
+                        Parking.PathLines = linesList; 
+                        return currentGrade;
                         currentGradeList.Clear(); 
                     }
                     else
                     {
-
                         var newList = new List<int[]>();
                         for (int k = 0;  k< currentGradeList.Count; k++)
                         {
@@ -102,10 +117,7 @@ namespace ParkingDemo.Utils
                         }
                         var newList2 = new List<int[]>();
                         currentGradeList = newList2; 
-
-                        
                         cellsGrade.Add(newList); 
-
                        /* var newListCurrent = new List<ParkingUtils.PathInfo.Cell>();
                         foreach (var cell in currentGradeList)
                         {
@@ -118,10 +130,12 @@ namespace ParkingDemo.Utils
                 }
                 else
                 {
-                    return currentGrade;
                     visitedLast = true;
-                    break;
-
+                    Parking.TotalLengthGrade = totalLengthByCars;
+                    Parking.MaxLengthGrade = currentGrade;
+                    Parking.TotalPathCellsVisited = totalPathCellsVisited; 
+                    Parking.PathLines = linesList;
+                    return currentGrade;
                 }
                 //return currentGrade; 
             }

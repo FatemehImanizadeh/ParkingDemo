@@ -10,9 +10,8 @@ namespace ParkingDemo.Utils
     public class Optimization
     {
         private double _LotNumW = 1;
-        private double _PathLenW = 0.2;
-        private double _NonFuncW = 1; 
-
+        private double _PathLenW = 0;
+        private double _NonFuncW = 0.1; 
         public double LotNumW { get { return _LotNumW; } set { this._LotNumW = value; } }
         public double PathLenW { get { return _PathLenW; } set { this._PathLenW = value; } }
         public double NonFuncW { get { return _NonFuncW; } set { this._NonFuncW = value; } }
@@ -33,10 +32,15 @@ namespace ParkingDemo.Utils
         }*/
         public static double OptimizationFunction(Optimization Optimization, Parking Parking )
         {
-            double Score = Optimization.LotNumW * (float) Parking.LotNumber  - Optimization.PathLenW * (float)Parking.PathCellNumber - Optimization.NonFuncW * (float)Parking.EmptyCells;
-            Score = 1/(1+ Math.Exp(-Score*5/Parking.PlanCellNum));
+            var verticals = Parking.ExcludeCells.Count; 
+            var MaxPathLength = Parking.MaxLengthGrade;
+            var avgPathGrade = Parking.TotalLengthGrade / Parking.LotNumber; 
+            double Score = Optimization.LotNumW * (float) Parking.LotNumber  - Optimization.PathLenW * (float)avgPathGrade - Optimization.NonFuncW * (float)Parking.EmptyCells;
+            //Score = 1/(1+ Math.Exp(-Score/Parking.PlanCellNum));
+            var totalCellsAccessible = Parking.PlanCellNum - verticals; 
+            Score = Score*2/ totalCellsAccessible;
             Parking.Score = Score;
-            return Score;
+            return Parking.Score;
         }
     }
 }

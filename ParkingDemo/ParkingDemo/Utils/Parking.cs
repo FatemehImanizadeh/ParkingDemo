@@ -12,15 +12,18 @@ namespace ParkingDemo.Utils
 {
     public class Parking
     {
-        
+
         public int LotNumber { get; set; }
         public int PathCellNumber { get; set; }
         public int PlanCellNum { get; set; }
         public int EmptyCells { get; set; }
         private DataTree<Transform> _CarTransforms = new DataTree<Transform>();
-        public DataTree<Transform> CarTransforms { get => _CarTransforms;  set { _CarTransforms = value; } }
-        private DataTree<Point3d> _PathPoints = new DataTree<Point3d>(); 
-        public DataTree<Point3d> PathPoints { get => _PathPoints;  set { this._PathPoints = value; } }
+        public DataTree<Transform> CarTransforms { get => _CarTransforms; set { _CarTransforms = value; } }
+        private DataTree<Point3d> _PathPoints = new DataTree<Point3d>();
+        public DataTree<Point3d> PathPoints { get => _PathPoints; set { this._PathPoints = value; } }
+        private List<Line> _PathLines = new List<Line>();
+        public List<Line> PathLines  { get => _PathLines;  set { this._PathLines = value; }
+}
         public double Score { get; set; }
         private Guid _parkingID = Guid.NewGuid();
         private bool _IsGenerationValid = true;
@@ -43,6 +46,12 @@ namespace ParkingDemo.Utils
         public int CurrentPathIndex { get => _CurrentPathIndex; set { _CurrentPathIndex = value; } }
         private int _CurrentPathItemCount = 0 ; 
         public int CurrentPathItemCount { get => _CurrentPathItemCount; set { _CurrentPathItemCount = value; } }
+        private int _MaxLengthGrade = 0;
+        public int MaxLengthGrade { get => _MaxLengthGrade; set { _MaxLengthGrade = value; } }
+        private int _TotalLengthGrade = 0;
+        public int TotalLengthGrade { get => _TotalLengthGrade; set { _TotalLengthGrade = value; } }
+        private int _TotalPathCellsVisited = 0;
+        public int TotalPathCellsVisited { get => _TotalPathCellsVisited; set { _TotalPathCellsVisited = value; } }
         public DataTree<Point3d> PlanPointsGrid { get; set; } 
         public DataTree<Rectangle3d>PlanCells { get; set; }
         public Matrix PlanMatrix { get; set; }

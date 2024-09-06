@@ -139,7 +139,7 @@ namespace ParkingDemo
                 }
             return mtx;
         }
-        public static Matrix GridToMatrix3(DataTree<Point3d> ptGrid, int row, int col, Curve Outline, List<Curve> Exclutions, out List<Rectangle3d> ExcludeCells)
+        public static Matrix GridToMatrixWithExcludeCrvs(DataTree<Point3d> ptGrid, int row, int col, Curve Outline, List<Curve> Exclutions, out List<Rectangle3d> ExcludeCells)
         {
             var excludeCells = new List<Rectangle3d>();
             var mtx = new Matrix(row, col);
@@ -147,10 +147,17 @@ namespace ParkingDemo
                 for (int j = 0; j < col; j++)
                 {
                     var containment1 = Outline.Contains(ptGrid.Branch(i)[j], Plane.WorldXY, 0.01);
+                   
                    foreach(var crv in Exclutions)
                     {
                         var excludeCrv = crv;
-                        var containment2 = excludeCrv.Contains(ptGrid.Branch(i)[j], Plane.WorldXY, 0.01);
+                        PointContainment containment2;
+                       if (excludeCrv != null)
+                          containment2 = excludeCrv.Contains(ptGrid.Branch(i)[j], Plane.WorldXY, 0.01);
+                        else
+                        {
+                            containment2 = PointContainment.Outside;
+                        }
                         if (containment2 == PointContainment.Inside)
                         {
                             mtx[i, j] = 5;
@@ -177,6 +184,7 @@ namespace ParkingDemo
             ExcludeCells = excludeCells;
             return mtx;
         }
+
         public static void ResetMatrixElementsAfterRamp(Matrix PlanMatrix)
         {
             for (int i = 0; i < PlanMatrix.RowCount; i++)
@@ -979,7 +987,9 @@ namespace ParkingDemo
                 newparkingpath.cells = new List<PathInfo.Cell>();
                 pathindex++;
                 currentpathitemcount = 0;
-                startCell = newstartcell; 
+                startCell = newstartcell;
+                parkingPaths[pathindex] = new ParkingPath();
+                parkingPaths[pathindex].cells = new List<PathInfo.Cell>();
                 parkingPaths[pathindex].cells.Add(new PathInfo.Cell(newstartcell.row,newstartcell.col, parkingPaths[pathindex]));
 
             }
