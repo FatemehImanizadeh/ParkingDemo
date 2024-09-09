@@ -83,7 +83,7 @@ namespace ParkingDemo
                 if (generationReset)
                     Generations = new GenerationCollection();
                 var optimization = new Optimization();
-                PathLength.GetPathLength(parking); 
+                PathLength.GetPathLength2(parking); 
                 Optimization.OptimizationFunction(optimization, parking);
                 if (parking.IsGenerationValid) 
                 {
@@ -91,7 +91,9 @@ namespace ParkingDemo
                 }
                 DA.SetData(0, parking);
                 DA.SetData(1, Generations);
-                
+                stopwatch.Stop();
+                var time = stopwatch.ElapsedMilliseconds;
+                parking.GenerationTime = time;
             }
         }
         protected override System.Drawing.Bitmap Icon => ParkingDemo.Properties.Resources.ParkingSolver;

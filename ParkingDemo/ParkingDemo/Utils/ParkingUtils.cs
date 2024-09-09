@@ -721,7 +721,6 @@ namespace ParkingDemo
             var currentpathitemcount = Parking.CurrentPathItemCount;
             if (mtx[startCell.row, startCell.col] == 0 || mtx[startCell.row, startCell.col] == 2)
             {
-
                 var cell = ParkingUtils.FirstPathCell(mtx);
                 startCell = cell;
                 Parking.CurrentStartCell = startCell;
@@ -1037,6 +1036,10 @@ namespace ParkingDemo
             }
             public class Cell
             {
+                public int DirShift { get; set; }
+                public enum CellDirection {North, West, East, South }
+                private CellDirection _Direction = CellDirection.North; 
+                public CellDirection Direction { get => _Direction; set { _Direction = value; } }
                 private int _row;//{ get { return _row; } set { } }
                 public int row { get { return _row; } set { _row = value; } }
                 private int _col;//{ get { return _col; } set { } }

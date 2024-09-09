@@ -32,10 +32,12 @@ namespace ParkingDemo.Component.Analyze
             pManager.AddRectangleParameter("Parking Entrance Cell", "PE", "parking entrance cell", GH_ParamAccess.item); 
             pManager.AddCurveParameter("Plan Outline", "O", "plan outline", GH_ParamAccess.item);
             pManager.AddNumberParameter("RampInfo", "rampinfo", " ramp information: index0: side, index1: index of ramp start cell on selected side, index2: ramp type, index3: ramp orientation", GH_ParamAccess.list);
-            pManager.AddGenericParameter("Parkings Paths", "PP", "parking paths", GH_ParamAccess.item);
-            pManager.AddLineParameter("PathLines", "PL", "parking path lines", GH_ParamAccess.list); 
+            pManager.AddLineParameter("PathLines", "PL", "parking path lines", GH_ParamAccess.list);
+            pManager.AddNumberParameter("Generation Time", "GT", "generation time", GH_ParamAccess.item) ;
+            pManager.AddNumberParameter("Path Direction Shift", "PDS", "path direction shift", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Avg Direction Shift", "ADS", "average path direction shift", GH_ParamAccess.item);
+            pManager.AddRectangleParameter("Cells With Grade", "CWG", "path cells with grade", GH_ParamAccess.tree);
         }
-
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             var parking = new Parking();
@@ -62,6 +64,10 @@ namespace ParkingDemo.Component.Analyze
             DA.SetData(8, outline);
             DA.SetDataList(9, rampInfo);
             DA.SetDataList(10, parking.PathLines);
+            DA.SetData(11, parking.GenerationTime);
+            DA.SetData(12, parking.PathDirectionShift); 
+            DA.SetData(13, (float)parking.TotalDirShift/ parking.LotNumber);
+            DA.SetDataTree(14, parking.CellsWithGrade); 
         }
         protected override System.Drawing.Bitmap Icon => ParkingDemo.Properties.Resources.DeconstructParking;
         public override Guid ComponentGuid

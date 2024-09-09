@@ -10,7 +10,7 @@ namespace ParkingDemo.Utils
     public class Optimization
     {
         private double _LotNumW = 1;
-        private double _PathLenW = 0;
+        private double _PathLenW = 0.5;
         private double _NonFuncW = 0.1; 
         public double LotNumW { get { return _LotNumW; } set { this._LotNumW = value; } }
         public double PathLenW { get { return _PathLenW; } set { this._PathLenW = value; } }

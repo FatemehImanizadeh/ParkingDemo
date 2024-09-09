@@ -12,11 +12,16 @@ namespace ParkingDemo.Utils
 {
     public class Parking
     {
-
+        
         public int LotNumber { get; set; }
         public int PathCellNumber { get; set; }
         public int PlanCellNum { get; set; }
         public int EmptyCells { get; set; }
+        public int TotalDirShift { get; set; }
+        private long _GenerationTime = 0; 
+        
+        public long GenerationTime { get {return _GenerationTime; }  set { _GenerationTime = value;  } }
+        public int PathDirectionShift { get; set; }
         private DataTree<Transform> _CarTransforms = new DataTree<Transform>();
         public DataTree<Transform> CarTransforms { get => _CarTransforms; set { _CarTransforms = value; } }
         private DataTree<Point3d> _PathPoints = new DataTree<Point3d>();
@@ -33,6 +38,12 @@ namespace ParkingDemo.Utils
         {
             get { return _ExcludeCells; }
             set { _ExcludeCells = value;}
+        }
+        private DataTree<Rectangle3d> _CellsWithGrade = new DataTree<Rectangle3d>();
+        public DataTree<Rectangle3d> CellsWithGrade
+        {
+            get { return _CellsWithGrade; }
+            set { _CellsWithGrade = value; }
         }
         private List<ParkingUtils.PathInfo.ParkingPath> _ParkingPaths = new List<ParkingUtils.PathInfo.ParkingPath>();
  
