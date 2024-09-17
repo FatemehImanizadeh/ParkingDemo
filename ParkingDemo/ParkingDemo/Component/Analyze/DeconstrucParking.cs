@@ -37,6 +37,7 @@ namespace ParkingDemo.Component.Analyze
             pManager.AddNumberParameter("Path Direction Shift", "PDS", "path direction shift", GH_ParamAccess.item);
             pManager.AddNumberParameter("Avg Direction Shift", "ADS", "average path direction shift", GH_ParamAccess.item);
             pManager.AddRectangleParameter("Cells With Grade", "CWG", "path cells with grade", GH_ParamAccess.tree);
+            pManager.AddNumberParameter("Lot Count", "LC", "lot count", GH_ParamAccess.item);
         }
         protected override void SolveInstance(IGH_DataAccess DA)
         {
@@ -68,6 +69,7 @@ namespace ParkingDemo.Component.Analyze
             DA.SetData(12, parking.PathDirectionShift); 
             DA.SetData(13, (float)parking.TotalDirShift/ parking.LotNumber);
             DA.SetDataTree(14, parking.CellsWithGrade); 
+            DA.SetData(15, parking.LotNumber);
         }
         protected override System.Drawing.Bitmap Icon => ParkingDemo.Properties.Resources.DeconstructParking;
         public override Guid ComponentGuid

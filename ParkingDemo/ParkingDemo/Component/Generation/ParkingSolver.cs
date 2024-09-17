@@ -76,14 +76,13 @@ namespace ParkingDemo
                 var emptyCells = ParkingUtils.emptycell(plantomatrix);
                 ParkingUtils.SetParkingStartCell(parking);
                 parking.PathCellNumber = parking.PathPoints.BranchCount;
-                parking.LotNumber = parking.CarTransforms.DataCount;
                 parking.EmptyCells = emptyCells;
                 var num2 = parking.PlanPointsGrid.DataCount;
                 parking.PlanCellNum = num2;
                 if (generationReset)
                     Generations = new GenerationCollection();
                 var optimization = new Optimization();
-                PathLength.GetPathLength2(parking); 
+                PathLength.GetPathLength2(parking);
                 Optimization.OptimizationFunction(optimization, parking);
                 if (parking.IsGenerationValid) 
                 {

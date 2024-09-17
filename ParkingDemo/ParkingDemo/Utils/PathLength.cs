@@ -144,8 +144,6 @@ namespace ParkingDemo.Utils
             return currentGrade; 
         }
 
-
-
         public static int GetPathLength2(Parking Parking)
         {
             var mtx = Parking.PlanMatrix.Duplicate();
@@ -159,6 +157,7 @@ namespace ParkingDemo.Utils
             var grid = Parking.PlanPointsGrid;
             var pathList = new List<Point3d>();
             var linesList = new List<Line>();
+            int lotNum = 0; 
             //var cellsGrade = new ParkingUtils.PathInfo.Cell[100][];
             var allLotTransforms = new DataTree<Transform>();
             var allCellsWithGrade = new DataTree<Rectangle3d>();
@@ -195,9 +194,10 @@ namespace ParkingDemo.Utils
                         var preDir = cell.Direction; 
                         var lastcellPt = grid.Branch(row)[col];
                         var currentCell = Parking.PlanCells.Branch(cell.row, cell.col)[0];
+                        var giveParkingAccess = false;
+
                         allCellsWithGrade.Add(currentCell, new Grasshopper.Kernel.Data.GH_Path(currentGrade));
                         for (int i = -1; i < 2; i++)
-
                         {
                             for (int j = -1; j < 2; j++)
                             {
@@ -215,15 +215,15 @@ namespace ParkingDemo.Utils
                                         }
                                         if (itemIndex == -1)
                                         {
-                                           
                                             visitedList.Add(cellintNew);
                                             DetectCellDirection(cellnew, i, j);
                                             if (item == 3)
                                             {
+                                                giveParkingAccess = true;
                                                 var currentDir = cellnew.Direction;
                                                 if (currentDir != preDir)
                                                 {
-                                                    if(currentGrade>1)
+                                                    if(currentGrade>1 && currentGrade != 1)
                                                     dirShift++;
                                                     cellnew.DirShift = cell.DirShift + 1; 
                                                 }
@@ -236,20 +236,28 @@ namespace ParkingDemo.Utils
                                                 var newcellPt = grid.Branch(cellnew.row)[cellnew.col];
                                                 var ln = new Line(lastcellPt, newcellPt);
                                                 linesList.Add(ln);
-                                                
                                             }
                                             if (item == 2 || item == 1)
                                             {
+                                                giveParkingAccess = true; 
                                                 totalLengthByCars += currentGrade;
                                                 totalDirShift += cell.DirShift;
                                                 var cellTransform = SetCarTransformations(Parking,  cellnew);
                                                 allLotTransforms.Add(cellTransform, new Grasshopper.Kernel.Data.GH_Path(currentGrade));
+                                                lotNum++; 
                                             }
                                             index++;
                                         }
+
                                     }
                                 }
                             }
+                        }
+                        if (!giveParkingAccess)
+                        {
+                            var X = cell.Direction; 
+                           var cellTransform =  SetCarTransformations(Parking, cell);
+                            allLotTransforms.Add(cellTransform, new Grasshopper.Kernel.Data.GH_Path(currentGrade-1));
                         }
                     }
                     var len = currentGradeList.Count;
@@ -263,7 +271,8 @@ namespace ParkingDemo.Utils
                         Parking.PathDirectionShift = dirShift;
                         Parking.TotalDirShift = totalDirShift;
                         Parking.CarTransforms = allLotTransforms;
-                        Parking.CellsWithGrade = allCellsWithGrade; 
+                        Parking.CellsWithGrade = allCellsWithGrade;
+                        Parking.LotNumber = lotNum; 
                         return currentGrade;
                         currentGradeList.Clear();
                     }
@@ -291,7 +300,8 @@ namespace ParkingDemo.Utils
                     Parking.PathDirectionShift = dirShift;
                     Parking.TotalDirShift = totalDirShift;
                     Parking.CarTransforms = allLotTransforms;
-                    Parking.CellsWithGrade = allCellsWithGrade; 
+                    Parking.CellsWithGrade = allCellsWithGrade;
+                    Parking.LotNumber = lotNum; 
                     return currentGrade;
                 }
                 //return currentGrade; 

@@ -10,8 +10,9 @@ namespace ParkingDemo.Utils
     public class Optimization
     {
         private double _LotNumW = 1;
-        private double _PathLenW = 0.5;
-        private double _NonFuncW = 0.1; 
+        private double _PathLenW = 0.3;
+        private double _NonFuncW = 0.0; 
+        private double _DirShiftW = 0.1;
         public double LotNumW { get { return _LotNumW; } set { this._LotNumW = value; } }
         public double PathLenW { get { return _PathLenW; } set { this._PathLenW = value; } }
         public double NonFuncW { get { return _NonFuncW; } set { this._NonFuncW = value; } }
@@ -35,7 +36,7 @@ namespace ParkingDemo.Utils
             var verticals = Parking.ExcludeCells.Count; 
             var MaxPathLength = Parking.MaxLengthGrade;
             var avgPathGrade = Parking.TotalLengthGrade / Parking.LotNumber; 
-            double Score = Optimization.LotNumW * (float) Parking.LotNumber  - Optimization.PathLenW * (float)avgPathGrade - Optimization.NonFuncW * (float)Parking.EmptyCells;
+            double Score = Optimization.LotNumW * (float) Parking.LotNumber  - Optimization.PathLenW * (float)avgPathGrade - Optimization._DirShiftW * (float)Parking.TotalDirShift/Parking.LotNumber;
             //Score = 1/(1+ Math.Exp(-Score/Parking.PlanCellNum));
             var totalCellsAccessible = Parking.PlanCellNum - verticals; 
             Score = Score*2/ totalCellsAccessible;

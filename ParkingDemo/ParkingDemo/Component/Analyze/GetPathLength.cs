@@ -34,7 +34,7 @@ namespace ParkingDemo.Component.Analyze
             DA.GetData(0, ref parking);
             var maxLength = PathLength.GetPathLength(parking); 
             DA.SetData(0, maxLength);
-            DA.SetData(1, parking.TotalLengthGrade/parking.LotNumber); 
+            DA.SetData(1, (float)parking.TotalLengthGrade/parking.LotNumber); 
         }
         protected override System.Drawing.Bitmap Icon => null; 
        
