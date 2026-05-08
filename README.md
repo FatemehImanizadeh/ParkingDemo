@@ -38,9 +38,8 @@ An intelligent computational design tool developed as part of my Master's thesis
 > Detailed documentation and example files are available in the `examples/` folder.
 > For further information about using the file, feel free to contact me (fateme.imanizade@gmail.com)
 
-## 📸 Screenshots
-
-*(Add screenshots here)*
+## 🎥 Demo Video
+<img width="824" height="716" alt="generation samples" src="https://github.com/user-attachments/assets/1daf0227-864c-4448-ad5c-6f6a3bbb7fec" />
 
 
 ## 👤 Author
