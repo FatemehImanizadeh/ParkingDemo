@@ -4,9 +4,6 @@
 
 An intelligent computational design tool developed as part of my Master's thesis in Architectural Technology at Shahid Beheshti University. This plugin automates the generation of optimized parking plans using algorithmic and matrix-based approaches.
 
-![Parking Generator Demo](https://github.com/FatemehImanizadeh/ParkingDemo/blob/main/images/demo.gif)  
-*(Add your GIF or video thumbnail here)*
-
 ## ✨ Features
 
 - **Rule-based & Matrix-driven Generation** — Creates multiple valid parking layouts based on site constraints
@@ -40,9 +37,6 @@ An intelligent computational design tool developed as part of my Master's thesis
 5. enjoy
 > Detailed documentation and example files are available in the `examples/` folder.
 > For further information about using the file, feel free to contact me (fateme.imanizade@gmail.com)
-## 🎥 Demo Video
-
-[![Watch Demo Video](https://img.shields.io/badge/Watch-Demo_Video-red?style=for-the-badge&logo=youtube)](https://youtu.be/YOUR_VIDEO_LINK)
 
 ## 📸 Screenshots
 
