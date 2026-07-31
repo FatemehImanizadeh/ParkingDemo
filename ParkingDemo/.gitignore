@@ -1,0 +1,23 @@
+# Visual Studio
+.vs/
+
+# Build
+bin/
+obj/
+
+# Rider
+.idea/
+
+# User files
+*.user
+*.suo
+*.userosscache
+
+# NuGet
+packages/
+
+# Cache
+*.cache
+
+# Generated
+GeneratedFiles/
