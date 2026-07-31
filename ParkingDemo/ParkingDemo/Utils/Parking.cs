@@ -12,7 +12,10 @@ namespace ParkingDemo.Utils
 {
     public class Parking
     {
-        
+        // Added to avoid  excesive turns, from grok AI
+        public int CurrentDirection = -1;   // 0=N, 1=W, 2=E, 3=S   (-1 = not started)
+        public int TurnCount = 0;           // how many times this path has already turned
+        public const int MaxTurnsPerPath = 1;   // you asked for "rotate once"
         public int LotNumber { get; set; }
         public int PathCellNumber { get; set; }
         public int PlanCellNum { get; set; }
