@@ -708,6 +708,398 @@ namespace ParkingDemo
                 fistpathcell = startcell;
             }
         }
+
+        public static void PathFinder3(Parking Parking, ref int startCellfindingattempt)
+        {
+            var mtx = Parking.PlanMatrix;
+            var startCell = Parking.CurrentStartCell;
+            var grid = Parking.PlanPointsGrid;
+            var carTransforms = Parking.CarTransforms;
+            var mainPathPts = Parking.PathPoints;
+            var pathindex = Parking.CurrentPathIndex;
+            var parkingPaths = Parking.ParkingPaths;
+            var currentpathitemcount = Parking.CurrentPathItemCount;
+
+            if (mtx[startCell.row, startCell.col] == 0 || mtx[startCell.row, startCell.col] == 2)
+            {
+                startCell = ParkingUtils.FirstPathCell(mtx);
+                Parking.CurrentStartCell = startCell;
+                if (mtx[startCell.row, startCell.col] == 0 || mtx[startCell.row, startCell.col] == 2)
+                    return;
+            }
+
+            // startCellfindingattempt: counts how many times we drop a path attempt; once it
+            // gets too high, continuing the search is no longer worthwhile.
+            int n = startCell.row;
+            int m = startCell.col;
+
+            // Direction order kept identical to the original code: 0 = up, 1 = left, 2 = right, 3 = down
+            int[] dn = { -1, 0, 0, 1 };
+            int[] dm = { 0, -1, 1, 0 };
+
+            bool InBounds(int row, int col) =>
+                row >= 0 && row <= mtx.RowCount - 1 && col >= 0 && col <= mtx.ColumnCount - 1;
+
+            // Same "how promising is this neighbor" score as the original nested i/j + k/t loops:
+            // only counts a neighbor if it is itself an open cell (1), and scores its surroundings.
+            double CountAdjacency(int row, int col)
+            {
+                if (!InBounds(row, col) || mtx[row, col] != 1)
+                    return 0;
+
+                double num = 0;
+                for (int k = 0; k < 4; k++)
+                {
+                    int rr = row + dn[k];
+                    int cc = col + dm[k];
+                    if (!InBounds(rr, cc)) continue;
+
+                    if (mtx[rr, cc] == 1) num += 1;
+                    else if (mtx[rr, cc] == 3) num += 0.5;
+                    else if (mtx[rr, cc] == 2) num += 0.5;
+                }
+                return num;
+            }
+
+            // First run: seed the first parking path with the start cell.
+            if (parkingPaths.Count == 0)
+            {
+                var parkingpath = new PathInfo.ParkingPath { cells = new List<PathInfo.Cell>() };
+                parkingPaths.Add(parkingpath);
+                parkingpath.cells.Add(new PathInfo.Cell(n, m, parkingpath));
+                mainPathPts.Add(grid.Branch(n)[m], new GH_Path(pathindex, n, m));
+            }
+
+            mtx[n, m] = 3;
+
+            var adjacencynum = new double[4];
+            for (int dir = 0; dir < 4; dir++)
+                adjacencynum[dir] = CountAdjacency(n + dn[dir], m + dm[dir]);
+
+            // --- Straight-path preference -------------------------------------------------
+            // To know whether a candidate direction would keep the path going straight or make
+            // it turn, we need the direction we came FROM (previous cell -> current cell).
+            // parkingPaths[pathindex].cells always holds the cells of the path so far, and the
+            // current cell (n, m) is already the last entry added on the previous call/step, so
+            // the entry right before it is the previous cell.
+            var currentPathCells = parkingPaths[pathindex].cells;
+            int prevDirection = -1; // -1 = no previous cell yet (this is the first cell of the path)
+            if (currentPathCells.Count >= 2)
+            {
+                var prevCell = currentPathCells[currentPathCells.Count - 2];
+                int deltaRow = n - prevCell.row;
+                int deltaCol = m - prevCell.col;
+                for (int dir = 0; dir < 4; dir++)
+                {
+                    if (dn[dir] == deltaRow && dm[dir] == deltaCol)
+                    {
+                        prevDirection = dir;
+                        break;
+                    }
+                }
+            }
+
+            // ==== TUNABLE PARAMETER =========================================================
+            // straightPathBonusFactor multiplies the score of the direction that continues in
+            // the SAME direction as the previous move (i.e. keeps the path straight instead of
+            // turning). 1.0 = no preference at all (behaves like before). Anything above 1.0
+            // makes the algorithm more likely to pick that direction over an equal-or-lower
+            // scoring turn, giving straighter parking aisles. Raise it for straighter paths,
+            // lower it (towards 1.0) to allow more turns.
+            const double straightPathBonusFactor = 1.5;
+            // =================================================================================
+
+            // Weighted copy of adjacencynum used only for choosing the next cell; the original,
+            // unweighted adjacencynum is still used below to decide whether the path continues
+            // at all, so the bonus never artificially "revives" an otherwise dead-end cell.
+            var weightedAdjacency = (double[])adjacencynum.Clone();
+            if (prevDirection != -1 && weightedAdjacency[prevDirection] > 0)
+                weightedAdjacency[prevDirection] *= straightPathBonusFactor;
+
+            // Transforms/paths for each of the 4 neighbor directions, used both when a direction
+            // becomes the next path cell and when it becomes a parked car cell.
+            var vecbase = new Vector3d(new Point3d(grid.Branch(n)[m]));
+            var directionTransforms = new[]
+            {
+        Transform.Translation(vecbase + new Vector3d(0, 5, 0)) * Transform.Rotation(-Math.PI / 2, Plane.WorldXY.Origin), // up
+        Transform.Translation(vecbase + new Vector3d(-5, 0, 0)),                                                          // left
+        Transform.Translation(vecbase + new Vector3d(5, 0, 0)) * Transform.Rotation(Math.PI, Plane.WorldXY.Origin),      // right
+        Transform.Translation(vecbase + new Vector3d(0, -5, 0)) * Transform.Rotation(Math.PI / 2, Plane.WorldXY.Origin)  // down
+    };
+            var directionPaths = new[]
+            {
+        new GH_Path(pathindex, n - 1, m),
+        new GH_Path(pathindex, n, m - 1),
+        new GH_Path(pathindex, n, m + 1),
+        new GH_Path(pathindex, n + 1, m)
+    };
+
+            if (adjacencynum.Max() > 2)
+            {
+                mainPathPts.Add(grid.Branch(n)[m], new GH_Path(pathindex, n, m));
+
+                double max = weightedAdjacency.Max();
+                var candidates = Enumerable.Range(0, weightedAdjacency.Length).Where(i => weightedAdjacency[i] == max).ToList();
+                int nextcell = candidates[new Random().Next(candidates.Count)];
+
+                // Chosen direction becomes the next path cell; any other open neighbor becomes a parked car.
+                for (int dir = 0; dir < 4; dir++)
+                {
+                    int rr = n + dn[dir];
+                    int cc = m + dm[dir];
+                    if (!InBounds(rr, cc)) continue;
+
+                    if (dir == nextcell)
+                    {
+                        mtx[rr, cc] = 3;
+                        mainPathPts.Add(grid.Branch(rr)[cc], directionPaths[dir]);
+                    }
+                    else if (mtx[rr, cc] == 1)
+                    {
+                        mtx[rr, cc] = 2;
+                        carTransforms.Add(directionTransforms[dir], directionPaths[dir]);
+                    }
+                }
+
+                n += dn[nextcell];
+                m += dm[nextcell];
+                startCell.row = n;
+                startCell.col = m;
+
+                parkingPaths[pathindex].cells.Add(new PathInfo.Cell(n, m, parkingPaths[pathindex]));
+                currentpathitemcount++;
+            }
+            else
+            {
+                // Dead end reached. If the path so far is too short to be useful, discard it;
+                // otherwise just mark its remaining open neighbors as parked cars.
+                if (currentpathitemcount < 2)
+                {
+                    parkingPaths.RemoveAt(pathindex);
+
+                    var mainPathPtsToRemove = mainPathPts.Paths.Where(p => p.Indices[0] == pathindex).ToList();
+                    var carTransformsToRemove = carTransforms.Paths.Where(p => p.Indices[0] == pathindex).ToList();
+
+                    foreach (var p in mainPathPtsToRemove)
+                    {
+                        mtx[p.Indices[1], p.Indices[2]] = 1; // free the cell back up since its path was discarded
+                        mainPathPts.RemovePath(p);
+                    }
+                    foreach (var p in carTransformsToRemove)
+                    {
+                        mtx[p.Indices[1], p.Indices[2]] = 1; // same for the abandoned car cells
+                        carTransforms.RemovePath(p);
+                    }
+
+                    pathindex--;
+                    startCellfindingattempt++;
+                }
+                else
+                {
+                    for (int dir = 0; dir < 4; dir++)
+                    {
+                        int rr = n + dn[dir];
+                        int cc = m + dm[dir];
+                        if (InBounds(rr, cc) && mtx[rr, cc] == 1)
+                        {
+                            mtx[rr, cc] = 2;
+                            carTransforms.Add(directionTransforms[dir], directionPaths[dir]);
+                        }
+                    }
+                }
+
+                // Start a fresh path from a new starting cell.
+                var newstartcell = FirstPathCell(mtx);
+                var newparkingpath = new PathInfo.ParkingPath { cells = new List<PathInfo.Cell>() };
+                parkingPaths.Add(newparkingpath);
+
+                pathindex++;
+                currentpathitemcount = 0;
+                startCell = newstartcell;
+
+                newparkingpath.cells.Add(new PathInfo.Cell(newstartcell.row, newstartcell.col, newparkingpath));
+            }
+
+            Parking.CurrentPathIndex = pathindex;
+            Parking.CurrentPathItemCount = currentpathitemcount;
+            Parking.CurrentStartCell = startCell;
+        }
+        public static void PathFinder2(Parking Parking, ref int startCellfindingattempt)
+        {
+            var mtx = Parking.PlanMatrix;
+            var startCell = Parking.CurrentStartCell;
+            var grid = Parking.PlanPointsGrid;
+            var carTransforms = Parking.CarTransforms;
+            var mainPathPts = Parking.PathPoints;
+            var pathindex = Parking.CurrentPathIndex;
+            var parkingPaths = Parking.ParkingPaths;
+            var currentpathitemcount = Parking.CurrentPathItemCount;
+
+            if (mtx[startCell.row, startCell.col] == 0 || mtx[startCell.row, startCell.col] == 2)
+            {
+                startCell = ParkingUtils.FirstPathCell(mtx);
+                Parking.CurrentStartCell = startCell;
+                if (mtx[startCell.row, startCell.col] == 0 || mtx[startCell.row, startCell.col] == 2)
+                    return;
+            }
+
+            // startCellfindingattempt: counts how many times we drop a path attempt; once it
+            // gets too high, continuing the search is no longer worthwhile.
+            int n = startCell.row;
+            int m = startCell.col;
+
+            // Direction order kept identical to the original code: 0 = up, 1 = left, 2 = right, 3 = down
+            int[] dn = { -1, 0, 0, 1 };
+            int[] dm = { 0, -1, 1, 0 };
+
+            bool InBounds(int row, int col) =>
+                row >= 0 && row <= mtx.RowCount - 1 && col >= 0 && col <= mtx.ColumnCount - 1;
+
+            // Same "how promising is this neighbor" score as the original nested i/j + k/t loops:
+            // only counts a neighbor if it is itself an open cell (1), and scores its surroundings.
+            double CountAdjacency(int row, int col)
+            {
+                if (!InBounds(row, col) || mtx[row, col] != 1)
+                    return 0;
+
+                double num = 0;
+                for (int k = 0; k < 4; k++)
+                {
+                    int rr = row + dn[k];
+                    int cc = col + dm[k];
+                    if (!InBounds(rr, cc)) continue;
+
+                    if (mtx[rr, cc] == 1) num += 1;
+                    else if (mtx[rr, cc] == 3) num += 0.5;
+                    else if (mtx[rr, cc] == 2) num += 0.5;
+                }
+                return num;
+            }
+
+            // First run: seed the first parking path with the start cell.
+            if (parkingPaths.Count == 0)
+            {
+                var parkingpath = new PathInfo.ParkingPath { cells = new List<PathInfo.Cell>() };
+                parkingPaths.Add(parkingpath);
+                parkingpath.cells.Add(new PathInfo.Cell(n, m, parkingpath));
+                mainPathPts.Add(grid.Branch(n)[m], new GH_Path(pathindex, n, m));
+            }
+
+            mtx[n, m] = 3;
+
+            var adjacencynum = new double[4];
+            for (int dir = 0; dir < 4; dir++)
+                adjacencynum[dir] = CountAdjacency(n + dn[dir], m + dm[dir]);
+
+            // Transforms/paths for each of the 4 neighbor directions, used both when a direction
+            // becomes the next path cell and when it becomes a parked car cell.
+            var vecbase = new Vector3d(new Point3d(grid.Branch(n)[m]));
+            var directionTransforms = new[]
+            {
+        Transform.Translation(vecbase + new Vector3d(0, 5, 0)) * Transform.Rotation(-Math.PI / 2, Plane.WorldXY.Origin), // up
+        Transform.Translation(vecbase + new Vector3d(-5, 0, 0)),                                                          // left
+        Transform.Translation(vecbase + new Vector3d(5, 0, 0)) * Transform.Rotation(Math.PI, Plane.WorldXY.Origin),      // right
+        Transform.Translation(vecbase + new Vector3d(0, -5, 0)) * Transform.Rotation(Math.PI / 2, Plane.WorldXY.Origin)  // down
+    };
+            var directionPaths = new[]
+            {
+        new GH_Path(pathindex, n - 1, m),
+        new GH_Path(pathindex, n, m - 1),
+        new GH_Path(pathindex, n, m + 1),
+        new GH_Path(pathindex, n + 1, m)
+    };
+
+            if (adjacencynum.Max() > 2)
+            {
+                mainPathPts.Add(grid.Branch(n)[m], new GH_Path(pathindex, n, m));
+
+                double max = adjacencynum.Max();
+                var candidates = Enumerable.Range(0, adjacencynum.Length).Where(i => adjacencynum[i] == max).ToList();
+                int nextcell = candidates[new Random().Next(candidates.Count)];
+
+                // Chosen direction becomes the next path cell; any other open neighbor becomes a parked car.
+                for (int dir = 0; dir < 4; dir++)
+                {
+                    int rr = n + dn[dir];
+                    int cc = m + dm[dir];
+                    if (!InBounds(rr, cc)) continue;
+
+                    if (dir == nextcell)
+                    {
+                        mtx[rr, cc] = 3;
+                        mainPathPts.Add(grid.Branch(rr)[cc], directionPaths[dir]);
+                    }
+                    else if (mtx[rr, cc] == 1)
+                    {
+                        mtx[rr, cc] = 2;
+                        carTransforms.Add(directionTransforms[dir], directionPaths[dir]);
+                    }
+                }
+
+                n += dn[nextcell];
+                m += dm[nextcell];
+                startCell.row = n;
+                startCell.col = m;
+
+                parkingPaths[pathindex].cells.Add(new PathInfo.Cell(n, m, parkingPaths[pathindex]));
+                currentpathitemcount++;
+            }
+            else
+            {
+                // Dead end reached. If the path so far is too short to be useful, discard it;
+                // otherwise just mark its remaining open neighbors as parked cars.
+                if (currentpathitemcount < 2)
+                {
+                    parkingPaths.RemoveAt(pathindex);
+
+                    var mainPathPtsToRemove = mainPathPts.Paths.Where(p => p.Indices[0] == pathindex).ToList();
+                    var carTransformsToRemove = carTransforms.Paths.Where(p => p.Indices[0] == pathindex).ToList();
+
+                    foreach (var p in mainPathPtsToRemove)
+                    {
+                        mtx[p.Indices[1], p.Indices[2]] = 1; // free the cell back up since its path was discarded
+                        mainPathPts.RemovePath(p);
+                    }
+                    foreach (var p in carTransformsToRemove)
+                    {
+                        mtx[p.Indices[1], p.Indices[2]] = 1; // same for the abandoned car cells
+                        carTransforms.RemovePath(p);
+                    }
+
+                    pathindex--;
+                    startCellfindingattempt++;
+                }
+                else
+                {
+                    for (int dir = 0; dir < 4; dir++)
+                    {
+                        int rr = n + dn[dir];
+                        int cc = m + dm[dir];
+                        if (InBounds(rr, cc) && mtx[rr, cc] == 1)
+                        {
+                            mtx[rr, cc] = 2;
+                            carTransforms.Add(directionTransforms[dir], directionPaths[dir]);
+                        }
+                    }
+                }
+
+                // Start a fresh path from a new starting cell.
+                var newstartcell = FirstPathCell(mtx);
+                var newparkingpath = new PathInfo.ParkingPath { cells = new List<PathInfo.Cell>() };
+                parkingPaths.Add(newparkingpath);
+
+                pathindex++;
+                currentpathitemcount = 0;
+                startCell = newstartcell;
+
+                newparkingpath.cells.Add(new PathInfo.Cell(newstartcell.row, newstartcell.col, newparkingpath));
+            }
+
+            Parking.CurrentPathIndex = pathindex;
+            Parking.CurrentPathItemCount = currentpathitemcount;
+            Parking.CurrentStartCell = startCell;
+        }
+
         public static void PathFinder(Parking Parking,  ref int startCellfindingattempt)
         {
 

@@ -63,14 +63,14 @@ namespace ParkingDemo
                 // bool gno = GH_Convert(ghgrid, ref grid, GH_Conversion.Both);
                 Stopwatch stopwatch = new Stopwatch();
                 stopwatch.Start();
-                ParkingUtils.PathFinder(parking,  ref startcellfindingattemt);
+                ParkingUtils.PathFinder3(parking,  ref startcellfindingattemt);
                 int iteration = 0;
                 var ts = stopwatch.ElapsedMilliseconds.ToString();
                 Debug.WriteLine(ts + "ms");
                 while (ParkingUtils.emptycell(plantomatrix) > Math.Max(cellscount / 10, 4) && iteration < 650 && startcellfindingattemt < 100)
                 {
                     iteration++;
-                    ParkingUtils.PathFinder(parking,  ref startcellfindingattemt);
+                    ParkingUtils.PathFinder3(parking,  ref startcellfindingattemt);
                 }
                 mainPathConnection.CreateConnectionPath(parking);
                 var emptyCells = ParkingUtils.emptycell(plantomatrix);
