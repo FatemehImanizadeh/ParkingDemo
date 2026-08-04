@@ -63,7 +63,7 @@ namespace ParkingDemo
                 // bool gno = GH_Convert(ghgrid, ref grid, GH_Conversion.Both);
                 Stopwatch stopwatch = new Stopwatch();
                 stopwatch.Start();
-                ParkingUtils.PathFinder3(parking,  ref startcellfindingattemt);
+                ParkingUtils.PathFinder4(parking,  ref startcellfindingattemt);
                 int iteration = 0;
                 var ts = stopwatch.ElapsedMilliseconds.ToString();
                 Debug.WriteLine(ts + "ms");
