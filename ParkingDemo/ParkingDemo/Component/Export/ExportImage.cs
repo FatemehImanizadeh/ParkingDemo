@@ -7,7 +7,6 @@ using Grasshopper.Kernel;
 using ParkingDemo.Utils;
 using Rhino.Geometry;
 using System.Threading; 
-using System.Threading;
 namespace ParkingDemo.components.Preview
 {
 

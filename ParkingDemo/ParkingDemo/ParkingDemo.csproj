@@ -2,6 +2,7 @@
 	
   <PropertyGroup>
     <TargetFramework>net481</TargetFramework>
+	<LangVersion>8.0</LangVersion>
     <Version>1.0</Version>
     <Title>ParkingDemo</Title>
     <Description>Description of ParkingDemo</Description>
@@ -11,10 +12,15 @@
   <ItemGroup>
     <Compile Remove="Component\Generation\ParkingPathsTest.cs" />
     <Compile Remove="Component\Generation\PathConnection.cs" />
+    <Compile Remove="Component\Start\StartGeneration.cs" />
   </ItemGroup>
   
   <ItemGroup>
     <PackageReference Include="Grasshopper" Version="7.13.21348.13001" IncludeAssets="compile;build" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Reference Include="System.Windows.Forms" />
   </ItemGroup>
   
   <ItemGroup>
