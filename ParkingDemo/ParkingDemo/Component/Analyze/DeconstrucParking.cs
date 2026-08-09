@@ -70,6 +70,7 @@ namespace ParkingDemo.Component.Analyze
             DA.SetData(13, (float)parking.TotalDirShift/ parking.LotNumber);
             DA.SetDataTree(14, parking.CellsWithGrade); 
             DA.SetData(15, parking.LotNumber);
+           
         }
         protected override System.Drawing.Bitmap Icon => ParkingDemo.Properties.Resources.DeconstructParking;
         public override Guid ComponentGuid
