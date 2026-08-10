@@ -403,7 +403,7 @@ namespace ParkingDemo.Utils
             {
                 corner =
                     parking.PlanPointsGrid
-                    .Branch(row)[col];
+                    .Branch(row)[col]+ new Point3d(-2.5, -2.5, 0);
             }
             catch
             {

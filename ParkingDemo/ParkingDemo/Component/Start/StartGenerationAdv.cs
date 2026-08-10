@@ -524,7 +524,7 @@ namespace ParkingDemo.Component.GUI
         }
 
         protected override Bitmap Icon =>
-            Properties.Resources.StartGeneration;
+            Properties.Resources.ParkingSolver;
 
         public override Guid ComponentGuid =>
             new Guid(

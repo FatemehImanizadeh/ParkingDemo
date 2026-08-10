@@ -640,17 +640,7 @@ namespace ParkingDemo
         // ICON
         // ====================================================================
 
-        protected override Bitmap Icon
-        {
-            get
-            {
-                return null;
-
-                // Later you can replace this with:
-                //
-                // return Properties.Resources.YourBakeIcon;
-            }
-        }
+        protected override Bitmap Icon => Properties.Resources.BakeParking;
 
 
         // ====================================================================
@@ -911,7 +901,7 @@ namespace ParkingDemo
                     component.ExpireSolution(
                         true);
                 }
-
+                
 
                 return
                     GH_ObjectResponse.Handled;
