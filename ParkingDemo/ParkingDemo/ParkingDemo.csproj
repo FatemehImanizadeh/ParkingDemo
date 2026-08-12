@@ -10,8 +10,13 @@
   </PropertyGroup>
 	
   <ItemGroup>
+    <Compile Remove="Component\Analyze\GetPathLength.cs" />
+    <Compile Remove="Component\Analyze\SetOptimizationWeights.cs" />
+    <Compile Remove="Component\Generation\ColumnGenerator.cs" />
+    <Compile Remove="Component\Generation\ParkingPathConnection.cs" />
     <Compile Remove="Component\Generation\ParkingPathsTest.cs" />
     <Compile Remove="Component\Generation\PathConnection.cs" />
+    <Compile Remove="Component\Preview\BakeParkingPreview.cs" />
     <Compile Remove="Component\Start\StartGeneration.cs" />
   </ItemGroup>
   
@@ -48,10 +53,6 @@
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
-  </ItemGroup>
-  
-  <ItemGroup>
-    <Folder Include="Utils\Display\" />
   </ItemGroup>
   
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">

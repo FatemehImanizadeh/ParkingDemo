@@ -8,6 +8,7 @@ using Rhino.Geometry;
 
 using ParkingDemo.Utils;
 using Rhino.DocObjects;
+using ParkingDemo.Properties;
 
 namespace ParkingDemo
 {
@@ -378,14 +379,7 @@ namespace ParkingDemo
         // ICON
         // ====================================================================
 
-        protected override Bitmap Icon
-        {
-            get
-            {
-                return
-                    null;
-            }
-        }
+        protected override Bitmap Icon => Resources.preview;
 
 
         // ====================================================================
