@@ -21,7 +21,7 @@ namespace ParkingDemo
     // this preview code will move into BakeParkingResult.
     // ========================================================================
 
-    public class PreviewParkingResult :
+    public class PreviewParkingResult_test :
         GH_Component
     {
         private ParkingDisplayData _displayData;
@@ -31,7 +31,7 @@ namespace ParkingDemo
         // CONSTRUCTOR
         // ====================================================================
 
-        public PreviewParkingResult()
+        public PreviewParkingResult_test()
             : base(
                 "Preview Parking Result",
                 "PreviewPark",
