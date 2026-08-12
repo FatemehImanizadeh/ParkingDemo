@@ -13,6 +13,7 @@ using Rhino.Geometry;
 using static ParkingDemo.ParkingUtils;
 using ParkingDemo.Utils;
 using ParkingDemo.Component.Start;
+using Rhino;
 
 namespace ParkingDemo.Component.GUI
 {
@@ -379,6 +380,14 @@ namespace ParkingDemo.Component.GUI
 
                 RampInfo = rampInfo
             };
+            RhinoDoc doc = RhinoDoc.ActiveDoc;
+            double tolerance = doc != null ? doc.ModelAbsoluteTolerance : 0.001;
+
+            ParkingPreviewGeometryBuilder.BuildAll(
+                parking,
+                tolerance,
+                pathWidth: 0.30,      // همون مقداری که قبلاً توی BakeParkingResult بود
+                wallThickness: 0.20); // همون مقداری که قبلاً توی BakeParkingResult بود
 
             DA.SetData(0, parking);
 

@@ -22,17 +22,19 @@ namespace ParkingDemo.Utils
         public int PlanCellNum { get; set; }
         public int EmptyCells { get; set; }
         public int TotalDirShift { get; set; }
-        private long _GenerationTime = 0; 
-        
-        public long GenerationTime { get {return _GenerationTime; }  set { _GenerationTime = value;  } }
+        private long _GenerationTime = 0;
+
+        public long GenerationTime { get { return _GenerationTime; } set { _GenerationTime = value; } }
         public int PathDirectionShift { get; set; }
         private DataTree<Transform> _CarTransforms = new DataTree<Transform>();
         public DataTree<Transform> CarTransforms { get => _CarTransforms; set { _CarTransforms = value; } }
         private DataTree<Point3d> _PathPoints = new DataTree<Point3d>();
         public DataTree<Point3d> PathPoints { get => _PathPoints; set { this._PathPoints = value; } }
         private List<Line> _PathLines = new List<Line>();
-        public List<Line> PathLines  { get => _PathLines;  set { this._PathLines = value; }
-}
+        public List<Line> PathLines
+        {
+            get => _PathLines; set { this._PathLines = value; }
+        }
         public double Score { get; set; }
         private Guid _parkingID = Guid.NewGuid();
         private bool _IsGenerationValid = true;
@@ -41,7 +43,7 @@ namespace ParkingDemo.Utils
         public List<Rectangle3d> ExcludeCells
         {
             get { return _ExcludeCells; }
-            set { _ExcludeCells = value;}
+            set { _ExcludeCells = value; }
         }
         private DataTree<Rectangle3d> _CellsWithGrade = new DataTree<Rectangle3d>();
         public DataTree<Rectangle3d> CellsWithGrade
@@ -50,17 +52,17 @@ namespace ParkingDemo.Utils
             set { _CellsWithGrade = value; }
         }
         private List<ParkingUtils.PathInfo.ParkingPath> _ParkingPaths = new List<ParkingUtils.PathInfo.ParkingPath>();
- 
-        public List<ParkingUtils.PathInfo.ParkingPath> ParkingPaths { get=> _ParkingPaths; set { _ParkingPaths = value; } }
+
+        public List<ParkingUtils.PathInfo.ParkingPath> ParkingPaths { get => _ParkingPaths; set { _ParkingPaths = value; } }
         public Rectangle3d ParkingEntranceCell { get; set; }
         public ParkingUtils.PathInfo.Cell CurrentStartCell { get; set; }
         public ParkingUtils.PathInfo.Cell EntryCell { get; set; }
         private int _CurrentPathIndex = 0;
-        private List<ParkingUtils.PathInfo.Cell> _NotFunctionalCells =new List<ParkingUtils.PathInfo.Cell>();
-        public List<ParkingUtils.PathInfo.Cell> NotFunctionalCells { get => _NotFunctionalCells; set { _NotFunctionalCells = value;  } }
+        private List<ParkingUtils.PathInfo.Cell> _NotFunctionalCells = new List<ParkingUtils.PathInfo.Cell>();
+        public List<ParkingUtils.PathInfo.Cell> NotFunctionalCells { get => _NotFunctionalCells; set { _NotFunctionalCells = value; } }
 
         public int CurrentPathIndex { get => _CurrentPathIndex; set { _CurrentPathIndex = value; } }
-        private int _CurrentPathItemCount = 0 ; 
+        private int _CurrentPathItemCount = 0;
         public int CurrentPathItemCount { get => _CurrentPathItemCount; set { _CurrentPathItemCount = value; } }
         private int _MaxLengthGrade = 0;
         public int MaxLengthGrade { get => _MaxLengthGrade; set { _MaxLengthGrade = value; } }
@@ -68,11 +70,11 @@ namespace ParkingDemo.Utils
         public int TotalLengthGrade { get => _TotalLengthGrade; set { _TotalLengthGrade = value; } }
         private int _TotalPathCellsVisited = 0;
         public int TotalPathCellsVisited { get => _TotalPathCellsVisited; set { _TotalPathCellsVisited = value; } }
-        public DataTree<Point3d> PlanPointsGrid { get; set; } 
-        public DataTree<Rectangle3d>PlanCells { get; set; }
+        public DataTree<Point3d> PlanPointsGrid { get; set; }
+        public DataTree<Rectangle3d> PlanCells { get; set; }
         public Matrix PlanMatrix { get; set; }
-        public Curve Outline {  get; set; }
-        public DataTree <Point3d> SidePoints { get; set; }
+        public Curve Outline { get; set; }
+        public DataTree<Point3d> SidePoints { get; set; }
         public List<int> RampInfo { get; set; }
         public ParkingUtils.PathInfo.Cell RampEndCell { get; set; }
         public ParkingUtils.PathInfo.Cell PathStartCell { get; set; }
@@ -83,6 +85,16 @@ namespace ParkingDemo.Utils
         public List<List<double>> GridCoordinates { get; set; }
 
         public VerticalAccess VerticalAccess { get; set; }
+
+        /// <summary>
+        /// Precomputed preview/bake geometry (gradient cells, path ribbons,
+        /// excluded cells, entrance cell, walls), built once by
+        /// ParkingPreviewGeometryBuilder.BuildAll(...) right after the
+        /// parking layout is generated. Consumed by both the live GH
+        /// preview and the Bake button - neither recomputes geometry.
+        /// Null until BuildAll has been called on this instance.
+        /// </summary>
+        public ParkingPreviewGeometry PreviewGeometry { get; set; }
 
         public Parking() { }
     }
