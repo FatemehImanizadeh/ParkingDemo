@@ -50,6 +50,10 @@
     </None>
   </ItemGroup>
   
+  <ItemGroup>
+    <Folder Include="Utils\Display\" />
+  </ItemGroup>
+  
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <Exec Command="Copy &quot;$(TargetPath)&quot; &quot;C:\Users\fateme\AppData\Roaming\Grasshopper\Libraries\ParkingDemo.gha&quot;&#xD;&#xA;Erase &quot;$(TargetPath)&quot;" />
   </Target>
