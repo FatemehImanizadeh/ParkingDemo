@@ -172,13 +172,32 @@ namespace ParkingDemo.Utils
         public static Brep CreateRectangleSurface(
     Rectangle3d rectangle)
         {
+            double tolerance =
+                RhinoDoc.ActiveDoc != null
+                ? RhinoDoc.ActiveDoc.ModelAbsoluteTolerance
+                : 0.001;
+
+            return CreateRectangleSurface(
+                rectangle,
+                tolerance);
+        }
+
+        /// <summary>
+        /// Same as CreateRectangleSurface(rectangle) but does not depend on
+        /// RhinoDoc.ActiveDoc, so it can be used from a pure geometry
+        /// builder (see ParkingPreviewGeometryBuilder).
+        /// </summary>
+        public static Brep CreateRectangleSurface(
+    Rectangle3d rectangle,
+    double tolerance)
+        {
             Curve boundary =
                 rectangle.ToNurbsCurve();
 
             Brep[] breps =
                 Brep.CreatePlanarBreps(
                     boundary,
-                    RhinoDoc.ActiveDoc.ModelAbsoluteTolerance);
+                    tolerance);
 
             if (breps == null ||
                 breps.Length == 0)
@@ -187,6 +206,48 @@ namespace ParkingDemo.Utils
             }
 
             return breps[0];
+        }
+
+        /// <summary>
+        /// Bakes a set of already-computed geometry/color pairs as-is.
+        /// No geometry is recomputed here - this is the fast path used by
+        /// the preview/bake component once ParkingPreviewGeometryBuilder
+        /// has already built parking.PreviewGeometry.
+        /// </summary>
+        public static void BakeGeometryColorPairs(
+    RhinoDoc doc,
+    IEnumerable<GeometryColorPair> items,
+    int layerIndex)
+        {
+            if (items == null)
+                return;
+
+            foreach (GeometryColorPair item in items)
+            {
+                if (item == null ||
+                    item.Geometry == null)
+                {
+                    continue;
+                }
+
+                ObjectAttributes attributes =
+                    CreateColoredAttributes(
+                        layerIndex,
+                        item.Color);
+
+                if (item.Geometry is Brep brep)
+                {
+                    doc.Objects.AddBrep(
+                        brep,
+                        attributes);
+                }
+                else if (item.Geometry is Curve curve)
+                {
+                    doc.Objects.AddCurve(
+                        curve,
+                        attributes);
+                }
+            }
         }
 
 
