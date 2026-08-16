@@ -13,13 +13,13 @@ using System.Threading;
 
 namespace ParkingDemo
 {
-    public class ParkingSolver : GH_Component
+    public class SortCollection : GH_Component
     {
         public Optimization Optimizaton = new Optimization();
         public GenerationCollection Generations = new GenerationCollection();
-        public ParkingSolver()
-          : base("PathFinder", "PathFinder",
-              "computes the optional paths to access lots in parking and outputs parking informaiton for visualization",
+        public SortCollection()
+          : base("SortResults", "SortP",
+              "stores the generated solutions and sort them from the most optimal options",
               "ParkingDemo", "Generation")
         {
         }
@@ -88,6 +88,11 @@ namespace ParkingDemo
                 {
                     Generations.parkings.Add(parking);
                 }
+
+                // Sort from highest score to lowest score
+                Generations.parkings.Sort(
+                    (parkingA, parkingB) => parkingB.Score.CompareTo(parkingA.Score)
+                );
                 DA.SetData(0, parking);
                 DA.SetData(1, Generations);
                 stopwatch.Stop();
@@ -95,7 +100,7 @@ namespace ParkingDemo
                 parking.GenerationTime = time;
             }
         }
-        protected override System.Drawing.Bitmap Icon => ParkingDemo.Properties.Resources.ParkingSolver;
+        protected override System.Drawing.Bitmap Icon => ParkingDemo.Properties.Resources.ParkingCollection;
         public override Guid ComponentGuid
         {
             get { return new Guid("02AE87AE-E0AA-4D5C-B1C4-8213A002D4EE"); }
