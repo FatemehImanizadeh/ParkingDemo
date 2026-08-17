@@ -168,7 +168,6 @@ namespace ParkingDemo
                 AddRuntimeMessage(
                     GH_RuntimeMessageLevel.Error,
                     "No active Rhino document was found.");
-
                 return;
             }
 

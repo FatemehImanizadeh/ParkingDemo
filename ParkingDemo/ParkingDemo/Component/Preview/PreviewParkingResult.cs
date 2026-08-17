@@ -55,8 +55,8 @@ namespace ParkingDemo
 
         public PreviewParkingResult()
             : base(
-                "Bake Parking Result",
-                "BakePark",
+                "Preview Parking Result",
+                "PreviewPark",
                 "Always previews the generated parking (cars, graded cells, " +
                 "main path, excluded cells, entrance cell, boundary wall) " +
                 "using its precomputed geometry, and bakes the selected " +
@@ -228,12 +228,35 @@ namespace ParkingDemo
             // ---------------------------------------------------------------
             // ALWAYS-ON LIVE PREVIEW.
             //
-            // This runs on every normal solve, bake button or not. It just
-            // caches what DrawViewportMeshes/DrawViewportWires need; no
-            // geometry is recomputed here, they read parking.PreviewGeometry
-            // directly (see ParkingPreviewGeometryBuilder in the generation
-            // component).
+            // This runs on every normal solve, bake button or not.
+            //
+            // IMPORTANT FIX: we (re)build parking.PreviewGeometry right
+            // here, every solve, instead of trusting that some other
+            // component (the generation component) already built it
+            // correctly. By the time THIS component's SolveInstance runs,
+            // Grasshopper guarantees the upstream Parking object is fully
+            // computed (CellsWithGrade, PathLines, ExcludeCells, EntryCell,
+            // Outline all set) - so this is the safest possible place to
+            // build the preview geometry from.
+            //
+            // If the generation component was calling BuildAll too early
+            // (e.g. before CellsWithGrade/PathLines were assigned), the
+            // gradient cells and path ribbons would silently end up empty
+            // even though everything else (cars, walls, excluded cells)
+            // looked fine - which matches exactly what was being seen.
             // ---------------------------------------------------------------
+
+            RhinoDoc doc =
+                RhinoDoc.ActiveDoc;
+
+            double tolerance =
+                doc != null
+                ? doc.ModelAbsoluteTolerance
+                : 0.001;
+
+            ParkingPreviewGeometryBuilder.BuildAll(
+                parking,
+                tolerance);
 
             _previewParking = parking;
             _carBlockGoo = carBlockGoo;
@@ -244,15 +267,6 @@ namespace ParkingDemo
             _showExcluded = bakeExcluded;
             _showEntrance = bakeEntrance;
             _showWalls = bakeWalls;
-
-            if (parking.PreviewGeometry == null)
-            {
-                AddRuntimeMessage(
-                    GH_RuntimeMessageLevel.Remark,
-                    "Parking.PreviewGeometry is empty - nothing to preview " +
-                    "or bake yet. Call ParkingPreviewGeometryBuilder.BuildAll(...) " +
-                    "once in the component that generates this Parking object.");
-            }
 
 
             // ---------------------------------------------------------------
@@ -783,7 +797,7 @@ namespace ParkingDemo
 
 
         public override void DrawViewportMeshes(
-            IGH_PreviewArgs args)
+    IGH_PreviewArgs args)
         {
             base.DrawViewportMeshes(args);
 
@@ -793,25 +807,100 @@ namespace ParkingDemo
             ParkingPreviewGeometry pg =
                 _previewParking.PreviewGeometry;
 
+
+            // ============================================================
+            // GRADIENT CELLS
+            // Slightly lifted only for viewport display to avoid
+            // coplanar depth conflicts / Z-fighting.
+            // ============================================================
+
             if (_showGradient)
-                DrawShadedBreps(args, pg.GradientCells);
+            {
+                args.Display.PushModelTransform(
+                    Transform.Translation(
+                        0.0,
+                        0.0,
+                        0.002));
+
+                DrawShadedBreps(
+                    args,
+                    pg.GradientCells);
+
+                args.Display.PopModelTransform();
+            }
+
+
+            // ============================================================
+            // EXCLUDED CELLS
+            // ============================================================
 
             if (_showExcluded)
-                DrawShadedBreps(args, pg.ExcludedCells);
+            {
+                DrawShadedBreps(
+                    args,
+                    pg.ExcludedCells);
+            }
+
+
+            // ============================================================
+            // MAIN PATH
+            // Lift it slightly above the gradient cells.
+            // ============================================================
 
             if (_showPath)
-                DrawShadedBreps(args, pg.PathRibbons);
+            {
+                args.Display.PushModelTransform(
+                    Transform.Translation(
+                        0.0,
+                        0.0,
+                        0.004));
 
-            if (_showEntrance && pg.EntranceCell != null)
-                DrawShadedBreps(args, new List<GeometryColorPair> { pg.EntranceCell });
+                DrawShadedBreps(
+                    args,
+                    pg.PathRibbons);
+
+                args.Display.PopModelTransform();
+            }
+
+
+            // ============================================================
+            // ENTRANCE
+            // ============================================================
+
+            if (_showEntrance &&
+                pg.EntranceCell != null)
+            {
+                DrawShadedBreps(
+                    args,
+                    new List<GeometryColorPair>
+                    {
+                pg.EntranceCell
+                    });
+            }
+
+
+            // ============================================================
+            // WALLS
+            // ============================================================
 
             if (_showWalls)
-                DrawShadedBreps(args, pg.Walls);
+            {
+                DrawShadedBreps(
+                    args,
+                    pg.Walls);
+            }
+
+
+            // ============================================================
+            // CARS
+            // ============================================================
 
             if (_showCars)
-                DrawCarsPreview(args);
+            {
+                DrawCarsPreview(
+                    args);
+            }
         }
-
 
         public override void DrawViewportWires(
             IGH_PreviewArgs args)
