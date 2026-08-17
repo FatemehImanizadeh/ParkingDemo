@@ -17,6 +17,7 @@
     <Compile Remove="Component\Generation\ParkingPathsTest.cs" />
     <Compile Remove="Component\Generation\PathConnection.cs" />
     <Compile Remove="Component\Preview\BakeParkingPreview.cs" />
+    <Compile Remove="Component\Preview\PreviewParking.cs" />
     <Compile Remove="Component\Start\StartGeneration.cs" />
   </ItemGroup>
   
