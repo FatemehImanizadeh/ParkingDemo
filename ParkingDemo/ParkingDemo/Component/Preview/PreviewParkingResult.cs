@@ -62,7 +62,7 @@ namespace ParkingDemo
                 "using its precomputed geometry, and bakes the selected " +
                 "elements into Rhino when the BAKE PARKING button is pressed.",
                 "ParkingDemo",
-                "Analyse")
+                "Preview")
         {
         }
 

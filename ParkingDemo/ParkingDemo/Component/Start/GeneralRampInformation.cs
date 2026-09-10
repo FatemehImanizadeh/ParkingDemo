@@ -11,7 +11,7 @@ namespace ParkingDemo.Component.Generation
         public GeneralRampInformation()
           : base("RampInformation", "RI",
               "general ramp information including ramp orientations and ramp types",
-             "ParkingDemo", "Start")
+             "ParkingDemo", "Generation")
         {
         }
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)

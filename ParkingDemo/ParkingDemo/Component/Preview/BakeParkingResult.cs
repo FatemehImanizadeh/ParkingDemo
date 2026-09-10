@@ -39,7 +39,7 @@ namespace ParkingDemo
                 "cars, graded cells, main circulation path, excluded cells, " +
                 "entrance cell and parking boundary wall.",
                 "ParkingDemo",
-                "Analyse")
+                "Preview")
         {
         }
 

@@ -62,7 +62,7 @@ namespace ParkingDemo.Component.GUI
                 "Creates the initial parking information and repeatedly " +
                 "generates new configurations when auto-run is enabled.",
                 "ParkingDemo",
-                "Start")
+                "Generation")
         {
         }
 
