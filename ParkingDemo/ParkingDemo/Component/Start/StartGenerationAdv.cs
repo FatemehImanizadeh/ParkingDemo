@@ -355,6 +355,7 @@ namespace ParkingDemo.Component.GUI
 
             var parking = new Parking
             {
+                CellSize = cellSize,
                 ExcludeCells = excludeCells,
                 PlanMatrix = planToMatrix,
                 PlanPointsGrid = grid,

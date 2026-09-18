@@ -18,6 +18,8 @@ namespace ParkingDemo.Utils
         public int TurnCount = 0;           // how many times this path has already turned
         public const int MaxTurnsPerPath = 1;   // you asked for "rotate once"
         public int LotNumber { get; set; }
+        /// <summary>Grid-cell edge length in Rhino model units (the current generator uses 5).</summary>
+        public double CellSize { get; set; } = 5.0;
         public int PathCellNumber { get; set; }
         public int PlanCellNum { get; set; }
         public int EmptyCells { get; set; }

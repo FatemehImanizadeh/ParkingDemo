@@ -11,6 +11,7 @@ The repository root is two directories above this document. The tree below cover
 ```text
 ParkingDemo/                                      Repository root
 |-- README.md                                    Project overview, thesis context, features, installation, and usage instructions.
+
 `-- ParkingDemo/
     |-- .gitignore                               Excludes IDE state, build outputs, user settings, packages, and caches from Git.
     |-- ParkingDemo.sln                          Visual Studio solution containing the ParkingDemo project and build configurations.
@@ -24,7 +25,7 @@ ParkingDemo/                                      Repository root
         |-- Component/
         |   |-- Analyze/
         |   |   |-- DeconstrucParking.cs          Outputs a Parking object's geometry, matrix, score, ramp data, counts, and path metrics.
-        |   |   |-- DeconstructGenerationCollection.cs  Extracts the parking IDs and scores from a collection of generated layouts.
+        |   |   |-- DeconstructGenerationCollection.cs  Outputs collection IDs/scores and exports a score-ranked CSV plus PNG chart through one button and save dialog.
         |   |   |-- GetPathLength.cs             [excluded] Outputs maximum and average entrance-to-lot traversal grades.
         |   |   |-- SelectParking.cs             Selects a Parking object from a generation collection by its GUID.
         |   |   `-- SetOptimizationWeights.cs    [excluded] Recalculates collection scores using supplied optimization weights.
@@ -51,8 +52,10 @@ ParkingDemo/                                      Repository root
         |   |-- ColumnGrid.cs                    Calculates eligible column positions, circulation exclusions, and structural grid spacing.
         |   |-- GenerationCollection.cs          Stores a list of generated Parking objects.
         |   |-- Optimization.cs                  Scores layouts using lot count, average travel grade, and turns, normalized by accessible cells.
-        |   |-- Parking.cs                       Central mutable layout model holding cells, paths, ramps, cars, scores, metrics, and preview geometry.
+        |   |-- Parking.cs                       Central layout model holding cells, paths, cars, scores, cell size, existing route metrics, and preview geometry.
+        |   |-- ParkingExportRow.cs              Takes score-ranked scalar snapshots and formats CSV rows with model-unit distances and route metrics.
         |   |-- ParkingPreview.cs                Creates/reuses a Rhino top-view layout and saves its preview as a numbered PNG.
+        |   |-- ParkingResultsExporter.cs        Saves a ranked CSV and PNG with four metric charts plus a six-axis parallel coordinates chart, without overwriting files.
         |   |-- ParkingUtils.cs                  Core grid/matrix, boundary, ramp-placement, pathfinding, cell/path-model, and empty-cell utilities.
         |   |-- ParkingVisualizationBuilder.cs   Alternative geometry/color builder for cells, paths, and walls; no callers found in current source.
         |   |-- PathConnection.cs                Implements mainPathConnection to choose and build bridges between paths using feasibility and lot gain.
@@ -64,6 +67,8 @@ ParkingDemo/                                      Repository root
         |       |-- ParkingDisplayData.cs        Alternative sectioned display-data containers with colors, geometry, car data, and clipping bounds; no external callers found.
         |       |-- ParkingPreviewGeometry.cs    Holds geometry/color pairs for cached cells, exclusions, paths, entrance, and walls.
         |       `-- ParkingPreviewGeometryBuilder.cs  Builds and attaches preview/bake geometry to a Parking object without adding Rhino objects.
+        |-- Tests/
+        |   `-- ParkingExportTests.cs.test       Standalone CSV/chart regression harness using a scalar Parking stub; excluded from plugin compilation by its extension.
         |-- Properties/
         |   |-- launchSettings.json              Configures debugging to launch the locally installed Rhino 8 executable.
         |   |-- Resources.resx                   Maps component resource names to image files for embedding in the assembly.
@@ -107,6 +112,7 @@ ParkingDemo/                                      Repository root
 3. Collection deconstruction and `SelectParking` expose IDs/scores and retrieve a particular result; `DeconstrucParking` exposes detailed geometry and metrics.
 4. `PreviewParkingResult` builds/displays preview geometry and can bake it; `BakeParkingResult` provides dedicated baking. Cars use a referenced Rhino block definition and the layout's car transforms.
 5. `ExportImage` calls `ParkingPreview.PrintResult` to save the Rhino layout preview as a PNG.
+6. `DeconstructGenerationCollection` keeps its existing collection input and ID/score outputs; its Export CSV + chart button saves a ranked CSV and a PNG with four metric charts plus a parallel coordinates chart using a save dialog, without triggering another solve. Ordinary solves only refresh the snapshot and never write export files.
 
 This describes code responsibilities, not verified wiring inside ExampleFile.gh.
 
@@ -115,12 +121,15 @@ This describes code responsibilities, not verified wiring inside ExampleFile.gh.
 - The active project targets net481 and references Grasshopper package 7.13.21348.13001; the debug launch profile opens Rhino 8.
 - The post-build target copies the .gha into a hard-coded user Grasshopper Libraries folder and erases the original build output. Running a build can therefore deploy the plugin.
 - Nine component source files are excluded from the active build; the backup project has different settings.
-- Path-length metrics are traversal grades/cell steps, not automatically physical distances in model units.
+- Stored path-length metrics are traversal grades/cell steps; export multiplies them by Parking.CellSize (currently 5) to report Rhino model-unit distances.
+- User-confirmed metric definitions: LotNumber is the parking count; TotalDirShift / (double)LotNumber is average turns; PathDirectionShift is the existing value to export as maximum turns; TotalLengthGrade / (double)LotNumber * CellSize is average physical path length; MaxLengthGrade * CellSize is maximum physical path length; Score is the stored ranking score. Reuse these fields rather than introducing another turn-tracking calculation.
+- Distances are in model units (meters when the model uses meters). CSV headings explicitly say ModelUnits, and the PNG labels the active Rhino model unit system. Zero-lot rows leave route metrics blank to avoid dividing by zero.
+- The results export uses an immutable scalar snapshot, stable descending score order, invariant CSV numbers, and four metric charts of count, score, average path, and average turns. The same PNG also includes a six-axis parallel coordinates chart (count, average/max distance, average/max turns, score): each axis is independently normalized, original-unit ticks remain visible, better values are at the top, and the top five finite-score options have distinct colors and CSV-rank legend labels. Other options are translucent gray; constant axes use the midpoint and missing values break lines. Existing output files are never overwritten.
 - Optimization exposes NonFuncW, but the current scoring formula does not use it.
 - ParkingPreview's resetPlan argument is unused inside the helper; ExportImage uses that input as its export trigger.
 - ParkingPreview saves GetPreviewImage output, not the separately created ViewCapture bitmap; it modifies the first Rhino layout/detail and concatenates folder/filename directly.
 - ParkingVisualizationBuilder and ParkingDisplayData have no callers elsewhere in the inspected source; do not assume they are the active display pipeline.
-- No standalone automated test project was found. ParkingPathsTest is an excluded diagnostic Grasshopper component.
+- Tests/ParkingExportTests.cs.test exercises the actual CSV/chart helpers without Rhino; ParkingPathsTest is a separate excluded diagnostic Grasshopper component.
 - Recheck source when making changes: this map is a dated snapshot, not a replacement for reading current code.
 
 ## Generated build and IDE files
