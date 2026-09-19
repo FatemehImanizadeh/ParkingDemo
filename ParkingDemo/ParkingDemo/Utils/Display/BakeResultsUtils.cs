@@ -23,64 +23,9 @@ namespace ParkingDemo.Utils
      Parking parking,
      int layerIndex)
         {
-            if (parking.CellsWithGrade == null)
-                return;
-
-            int gradeCount =
-                parking.CellsWithGrade.BranchCount;
-
-            if (gradeCount == 0)
-                return;
-
-            int maximumGrade =
-                gradeCount - 1;
-
-            for (int grade = 0;
-                 grade < gradeCount;
-                 grade++)
-            {
-                var cells =
-                    parking.CellsWithGrade.Branch(grade);
-
-                if (cells == null)
-                    continue;
-
-                double normalizedGrade;
-
-                if (maximumGrade == 0)
-                {
-                    normalizedGrade = 0.0;
-                }
-                else
-                {
-                    normalizedGrade =
-                        (double)grade /
-                        (double)maximumGrade;
-                }
-
-                Color gradeColor =
-                    GetParkingGradientColor(
-                        normalizedGrade);
-
-                ObjectAttributes attributes =
-                    CreateColoredAttributes(
-                        layerIndex,
-                        gradeColor);
-
-                foreach (Rectangle3d rectangle in cells)
-                {
-                    Brep surface =
-                        CreateRectangleSurface(
-                            rectangle);
-
-                    if (surface != null)
-                    {
-                        doc.Objects.AddBrep(
-                            surface,
-                            attributes);
-                    }
-                }
-            }
+            var items = ParkingPreviewGeometryBuilder.BuildGradientCells(parking, doc.ModelAbsoluteTolerance);
+            try { ParkingBakeMesh.Bake(doc, items, layerIndex); }
+            finally { foreach (var item in items) item.Geometry?.Dispose(); }
         }
         public static ObjectAttributes CreateColoredAttributes(
     int layerIndex,
@@ -300,65 +245,9 @@ namespace ParkingDemo.Utils
     int layerIndex,
     double width)
         {
-            if (parking.PathLines == null)
-                return;
-
-            List<Curve> lineCurves =
-                new List<Curve>();
-
-            foreach (Line line in parking.PathLines)
-            {
-                if (!line.IsValid)
-                    continue;
-
-                lineCurves.Add(
-                    new LineCurve(line));
-            }
-
-            if (lineCurves.Count == 0)
-                return;
-
-            Curve[] joinedCurves =
-                Curve.JoinCurves(
-                    lineCurves,
-                    doc.ModelAbsoluteTolerance);
-
-            if (joinedCurves == null)
-                return;
-
-            Color pathColor =
-                Color.FromArgb(
-                    60,
-                    160,
-                    160);
-
-            ObjectAttributes attributes =
-                CreateColoredAttributes(
-                    layerIndex,
-                    pathColor);
-
-            foreach (Curve centerCurve in joinedCurves)
-            {
-                Brep ribbon =
-                    CreatePathRibbon(
-                        centerCurve,
-                        width,
-                        doc.ModelAbsoluteTolerance);
-
-                if (ribbon != null)
-                {
-                    doc.Objects.AddBrep(
-                        ribbon,
-                        attributes);
-                }
-                else
-                {
-                    // Fallback
-                    doc.Objects.AddCurve(
-                        centerCurve,
-                        attributes);
-                }
-            }
+            var items = ParkingPreviewGeometryBuilder.BuildContinuousPath(parking, width, doc.ModelAbsoluteTolerance);
+            try { ParkingBakeMesh.Bake(doc, items, layerIndex, width); }
+            finally { foreach (var item in items) item.Geometry?.Dispose(); }
         }
 
         public static Brep CreatePathRibbon(

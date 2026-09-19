@@ -88,22 +88,9 @@ namespace ParkingDemo
                         doc.Objects.AddInstanceObject(idef.Index, xform, attributes);
             }
 
-            // Path cells: the graded path cells, baked as closed rectangle curves.
-            if (parking.CellsWithGrade != null)
-            {
-                var attributes = new ObjectAttributes { LayerIndex = cellsLayerIndex };
-                foreach (var branch in parking.CellsWithGrade.Branches)
-                    foreach (var rec in branch)
-                        doc.Objects.AddCurve(rec.ToNurbsCurve(), attributes);
-            }
-
-            // Path main lines.
-            if (parking.PathLines != null)
-            {
-                var attributes = new ObjectAttributes { LayerIndex = linesLayerIndex };
-                foreach (var line in parking.PathLines)
-                    doc.Objects.AddLine(line, attributes);
-            }
+            // Use the same single-mesh sections as the current bake components.
+            BakeResultsUtils.BakeGradientCells(doc, parking, cellsLayerIndex);
+            BakeResultsUtils.BakeContinuousPath(doc, parking, linesLayerIndex, 0.30);
 
             doc.Views.Redraw();
         }

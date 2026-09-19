@@ -411,7 +411,7 @@ namespace ParkingDemo
 
             if (bakeGradient)
             {
-                BakeResultsUtils.BakeGeometryColorPairs(
+                ParkingBakeMesh.Bake(
                     doc,
                     pg.GradientCells,
                     gradientLayerIndex);
@@ -419,7 +419,7 @@ namespace ParkingDemo
 
             if (bakePath)
             {
-                BakeResultsUtils.BakeGeometryColorPairs(
+                ParkingBakeMesh.Bake(
                     doc,
                     pg.PathRibbons,
                     pathLayerIndex);

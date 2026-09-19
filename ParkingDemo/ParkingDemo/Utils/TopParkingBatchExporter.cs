@@ -105,6 +105,18 @@ namespace ParkingDemo.Utils
                     {
                         int layer = model.AllLayers.AddLayer(prefix + " - " + section.Key, section.First().Color);
                         if (layer < 0) throw new InvalidOperationException("Unable to create an export layer.");
+                        if (section.Key == "Gradient cells" || section.Key == "Circulation")
+                        {
+                            using (var mesh = ParkingBakeMesh.Create(
+                                section.Select(part => new GeometryColorPair(part.Geometry, part.Color)),
+                                source.ModelAbsoluteTolerance))
+                            using (var attributes = Attributes(layer, Color.White, scene))
+                            {
+                                if (!mesh.Transform(move)) throw new InvalidOperationException("Unable to arrange parking mesh.");
+                                if (mesh.Faces.Count > 0) EnsureAdded(model.Objects.AddMesh(mesh, attributes));
+                            }
+                            continue;
+                        }
                         foreach (var part in section)
                             using (var geometry = part.Geometry.Duplicate())
                             using (var attributes = Attributes(layer, part.Color, scene))
