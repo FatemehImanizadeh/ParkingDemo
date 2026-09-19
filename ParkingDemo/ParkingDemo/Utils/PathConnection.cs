@@ -238,10 +238,10 @@ namespace ParkingDemo.Utils
 
                         var rowNew = cell.row;
                         var colNew = cell.col;
-                        var vplus = new Vector3d(0, 5, 0);
-                        var vminus = new Vector3d(0, -5, 0);
-                        var hplus = new Vector3d(5, 0, 0);
-                        var hminus = new Vector3d(-5, 0, 0);
+                        var vplus = new Vector3d(0, Parking.CellSize, 0);
+                        var vminus = new Vector3d(0, -Parking.CellSize, 0);
+                        var hplus = new Vector3d(Parking.CellSize, 0, 0);
+                        var hminus = new Vector3d(-Parking.CellSize, 0, 0);
                         var vecbase = new Vector3d(new Point3d(gridPts.Branch(rowNew)[colNew]));
                         Transform rotation0 = new Transform(Transform.Rotation(-Math.PI / 2, Plane.WorldXY.Origin));
                         Transform rotation2 = new Transform(Transform.Rotation(Math.PI, Plane.WorldXY.Origin));

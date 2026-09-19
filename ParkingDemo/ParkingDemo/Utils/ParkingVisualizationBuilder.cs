@@ -95,7 +95,7 @@ namespace ParkingDemo.Utils
         public static readonly Color WallColorDefault =
             Color.FromArgb(35, 35, 35);
 
-        public const double EntranceCellSize = 5.0;
+        // Entrance dimensions come from each parking instance.
 
 
         // ---------------------------------------------------------------
@@ -229,7 +229,7 @@ namespace ParkingDemo.Utils
             {
                 corner =
                     parking.PlanPointsGrid.Branch(row)[col] +
-                    new Point3d(-2.5, -2.5, 0);
+                    new Point3d(-parking.CellSize / 2, -parking.CellSize / 2, 0);
             }
             catch
             {
@@ -242,8 +242,8 @@ namespace ParkingDemo.Utils
             Rectangle3d rectangle =
                 new Rectangle3d(
                     plane,
-                    new Interval(0, EntranceCellSize),
-                    new Interval(0, EntranceCellSize));
+                    new Interval(0, parking.CellSize),
+                    new Interval(0, parking.CellSize));
 
             return new ColoredRectangle(rectangle, EntranceCellColor);
         }

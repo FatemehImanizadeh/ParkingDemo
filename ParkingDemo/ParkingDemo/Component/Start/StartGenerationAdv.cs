@@ -87,6 +87,7 @@ namespace ParkingDemo.Component.GUI
                 GH_ParamAccess.list);
 
             pManager[1].Optional = true;
+            pManager.AddNumberParameter("Cell Size", "S", "Square-cell size in meters (4.5–6.5).", GH_ParamAccess.item, 5.0);
         }
 
         protected override void RegisterOutputParams(
@@ -245,16 +246,20 @@ namespace ParkingDemo.Component.GUI
             Point3d maximumPoint =
                 boundingBox.Max;
 
-            const int cellSize = 5;
+            double cellSize = 5.0;
+            if (!DA.GetData(2, ref cellSize)) return;
+            if (double.IsNaN(cellSize) || cellSize < 4.5 || cellSize > 6.5)
+            {
+                StopGenerationBecauseOfError("Cell Size must be between 4.5 and 6.5 meters.");
+                return;
+            }
+            cellSize *= Rhino.RhinoMath.UnitScale(Rhino.UnitSystem.Meters,
+                RhinoDoc.ActiveDoc?.ModelUnitSystem ?? Rhino.UnitSystem.Meters);
 
             DataTree<Point3d> grid = ParkingUtils.CreateGrid(
-                (int)RoundUp.RoundTo(
-                    maximumPoint.Y,
-                    cellSize) / cellSize,
+                (int)Math.Ceiling(maximumPoint.Y / cellSize),
 
-                (int)RoundUp.RoundTo(
-                    maximumPoint.X,
-                    cellSize) / cellSize,
+                (int)Math.Ceiling(maximumPoint.X / cellSize),
 
                 cellSize);
 
@@ -268,10 +273,10 @@ namespace ParkingDemo.Component.GUI
                 grid.Branch(0).Count,
                 crv,
                 excludeCrvs,
-                out excludeCells);
+                out excludeCells, cellSize);
 
             var cells =
-                CellularOutline(grid, planToMatrix);
+                CellularOutline(grid, planToMatrix, cellSize);
 
             var outline =
                 OutlineFromCells(cells);

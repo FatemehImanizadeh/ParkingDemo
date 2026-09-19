@@ -60,10 +60,10 @@ namespace ParkingDemo.Utils
         public void SetAccessTransforms(VerticalAccess access)
         {
             var cell = access.Cell;
-            var vplus = new Vector3d(0, 5, 0);
-            var vminus = new Vector3d(0, -5, 0);
-            var hplus = new Vector3d(5, 0, 0);
-            var hminus = new Vector3d(-5, 0, 0);
+            var vplus = new Vector3d(0, access.Parking.CellSize, 0);
+            var vminus = new Vector3d(0, -access.Parking.CellSize, 0);
+            var hplus = new Vector3d(access.Parking.CellSize, 0, 0);
+            var hminus = new Vector3d(-access.Parking.CellSize, 0, 0);
             var grid = access.Parking.PlanPointsGrid; 
             var vecbase = new Vector3d(new Point3d(grid.Branch(cell.row)[cell.col]));
             Transform rotation0 = new Transform(Transform.Rotation(-Math.PI / 2, Plane.WorldXY.Origin));

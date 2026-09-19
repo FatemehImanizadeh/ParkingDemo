@@ -83,9 +83,10 @@ namespace ParkingDemo
             if (parking.CarTransforms != null)
             {
                 var attributes = new ObjectAttributes { LayerIndex = carsLayerIndex };
+                var centering = BakeResultsUtils.CarCenteringTransform(idef);
                 foreach (var branch in parking.CarTransforms.Branches)
                     foreach (var xform in branch)
-                        doc.Objects.AddInstanceObject(idef.Index, xform, attributes);
+                        doc.Objects.AddInstanceObject(idef.Index, xform * centering, attributes);
             }
 
             // Use the same single-mesh sections as the current bake components.

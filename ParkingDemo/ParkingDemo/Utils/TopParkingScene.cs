@@ -58,11 +58,9 @@ namespace ParkingDemo.Utils
             };
             try
             {
-                // Use the actual generated square-cell size. Current generators use 5 model units.
-                var cells = parking.PlanCells?.Branches.SelectMany(branch => branch).ToList();
-                if (cells == null || cells.Count == 0 || cells[0].Width <= 0)
+                if (double.IsNaN(parking.CellSize) || double.IsInfinity(parking.CellSize) || parking.CellSize <= 0)
                     throw new InvalidOperationException("Rank " + rank + " has no valid grid cells.");
-                scene.CellSize = cells[0].Width;
+                scene.CellSize = parking.CellSize;
                 if (parking.LotNumber > 0)
                 {
                     scene.AverageDistance = (double)parking.TotalLengthGrade / parking.LotNumber * scene.CellSize;

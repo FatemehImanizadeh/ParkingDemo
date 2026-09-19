@@ -44,7 +44,7 @@ namespace ParkingDemo.Component.Generation
            var vEx = verticalException.Distinct().ToList();
            var hEx = horizontalException.Distinct().ToList();
             var outline = parking.Outline;
-            var gridCoords = ColumnGrid.GridCoordinates(outline, verticalException, horizontalException);
+            var gridCoords = ColumnGrid.GridCoordinates(outline, verticalException, horizontalException, parking.CellSize);
             var hcord = gridCoords[0];
             var vcoord = gridCoords[1];
             var finalgrid = new List<List<double>>();

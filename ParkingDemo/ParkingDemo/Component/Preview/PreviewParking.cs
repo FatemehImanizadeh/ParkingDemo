@@ -357,6 +357,7 @@ namespace ParkingDemo
             if (defObjects == null || defObjects.Length == 0)
                 return;
 
+            var centering = BakeResultsUtils.CarCenteringTransform(carBlockDefinition);
             foreach (var branch in _previewParking.CarTransforms.Branches)
             {
                 if (branch == null)
@@ -379,7 +380,7 @@ namespace ParkingDemo
                             Brep transformed =
                                 (Brep)sourceBrep.Duplicate();
 
-                            transformed.Transform(carTransform);
+                            transformed.Transform(carTransform * centering);
 
                             args.Display.DrawBrepShaded(
                                 transformed,
@@ -390,7 +391,7 @@ namespace ParkingDemo
                             Mesh transformed =
                                 (Mesh)sourceMesh.Duplicate();
 
-                            transformed.Transform(carTransform);
+                            transformed.Transform(carTransform * centering);
 
                             args.Display.DrawMeshShaded(
                                 transformed,
@@ -401,7 +402,7 @@ namespace ParkingDemo
                             Curve transformed =
                                 (Curve)sourceCurve.Duplicate();
 
-                            transformed.Transform(carTransform);
+                            transformed.Transform(carTransform * centering);
 
                             args.Display.DrawCurve(
                                 transformed,

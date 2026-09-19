@@ -176,14 +176,14 @@ namespace ParkingDemo.Utils
 
             try
             {
-                corner = parking.PlanPointsGrid.Branch(row)[col] + new Point3d(-2.5, -2.5, 0);
+                corner = parking.PlanPointsGrid.Branch(row)[col] + new Point3d(-parking.CellSize / 2, -parking.CellSize / 2, 0);
             }
             catch
             {
                 return null;
             }
 
-            const double cellSize = 5.0;
+            double cellSize = parking.CellSize;
 
             Plane plane = new Plane(corner, Vector3d.XAxis, Vector3d.YAxis);
 

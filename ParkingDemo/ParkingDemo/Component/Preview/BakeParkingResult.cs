@@ -363,6 +363,7 @@ namespace ParkingDemo
                 carsLayerIndex;
 
 
+            var centering = BakeResultsUtils.CarCenteringTransform(carBlockDefinition);
             foreach (var branch
                 in parking.CarTransforms.Branches)
             {
@@ -375,7 +376,7 @@ namespace ParkingDemo
                 {
                     doc.Objects.AddInstanceObject(
                         carBlockDefinition.Index,
-                        transform,
+                        transform * centering,
                         attributes);
                 }
             }

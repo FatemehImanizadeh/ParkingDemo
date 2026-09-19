@@ -11,10 +11,10 @@ namespace ParkingDemo.Utils
 {
     internal class ColumnGrid
     {
-        public static DataTree<Point3d> ColumnGridGenerator(Matrix mtx, DataTree<Rectangle3d> cells)
+        public static DataTree<Point3d> ColumnGridGenerator(Matrix mtx, DataTree<Rectangle3d> cells, double cellSize = 5.0)
         {
-            var xmax = mtx.ColumnCount * 5;
-            var ymax = mtx.RowCount * 5;
+            var xmax = mtx.ColumnCount * cellSize;
+            var ymax = mtx.RowCount * cellSize;
             var pts = new DataTree<Point3d>();
             for (int i = 0; i < mtx.RowCount; i++)
             {
@@ -28,7 +28,7 @@ namespace ParkingDemo.Utils
                                 if (!pts.PathExists(i * 2 + k, j * 2 + t))
                                 {
                                     var path = new GH_Path(i * 2 + k, j * 2 + t);
-                                    pts.Add(new Point3d((5 * j + t * 2.5), ymax - (5 * i + k * 2.5), 0), path);
+                                    pts.Add(new Point3d((cellSize * j + t * cellSize / 2), ymax - (cellSize * i + k * cellSize / 2), 0), path);
                                 }
                             }
                     }
@@ -40,7 +40,7 @@ namespace ParkingDemo.Utils
                                 if (!pts.PathExists(i * 2 + k, j * 2 + t))
                                 {
                                     var path = new GH_Path(i * 2 + k, j * 2 + t);
-                                    pts.Add(new Point3d((5 * j + t * 2.5), ymax - (5 * i + k * 2.5), 0), path);
+                                    pts.Add(new Point3d((cellSize * j + t * cellSize / 2), ymax - (cellSize * i + k * cellSize / 2), 0), path);
                                 }
                             }
                     }
@@ -107,7 +107,7 @@ namespace ParkingDemo.Utils
         }
         // در این کلاس لیست استثناهای افقی و عمودی برای  گرید وارد می‌شود. و محدوده ساختمان هم داده می‌شود بر اساس محدوده
         //  گرید بندی در دو راستای افقی و عمودی با حذف مختصات داخل للیستهای استثنا تولید میشود. در خروجی هیچ گریدی از وسط مسیر  عبور نمیکند
-        public static List<List<double>> GridCoordinates(Curve crv, List<double> verticalexception, List<double> horizontalexcepton)
+        public static List<List<double>> GridCoordinates(Curve crv, List<double> verticalexception, List<double> horizontalexcepton, double cellSize = 5.0)
         {
             var bbox = crv.GetBoundingBox(true);
             var Xinterval = new Interval(0, bbox.Max.X - bbox.Min.X);
@@ -117,16 +117,16 @@ namespace ParkingDemo.Utils
             double X = 0;
             while (X < Xinterval.T1)
             {
-                if (!verticalexception.Contains(X))
+                if (!verticalexception.Any(value => Math.Abs(value - X) < cellSize * 1e-8))
                     verticalcoordinates.Add(X);
-                X += 2.5;
+                X += cellSize / 2;
             }
             double Y = 0;
             while (Y < Yinterval.T1)
             {
-                if (!horizontalexcepton.Contains(Y))
+                if (!horizontalexcepton.Any(value => Math.Abs(value - Y) < cellSize * 1e-8))
                     horizontalcoordinares.Add(Y);
-                Y += 2.5;
+                Y += cellSize / 2;
             }
             var availablegridvalues = new List<List<double>>();
             availablegridvalues.Add(horizontalcoordinares);

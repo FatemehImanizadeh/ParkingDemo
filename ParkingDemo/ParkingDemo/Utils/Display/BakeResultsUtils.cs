@@ -12,6 +12,16 @@ namespace ParkingDemo.Utils
     
     public static class BakeResultsUtils
     {
+        // Center the block footprint before rotating/translating it to a cell; preserve height and scale.
+        public static Transform CarCenteringTransform(InstanceDefinition definition)
+        {
+            var bounds = BoundingBox.Empty;
+            foreach (var obj in definition.GetObjects())
+                bounds.Union(obj.Geometry.GetBoundingBox(true));
+            if (!bounds.IsValid) throw new InvalidOperationException("The car block has no valid geometry.");
+            return Transform.Translation(-bounds.Center.X, -bounds.Center.Y, 0);
+        }
+
         /// <summary>
         /// bake cells with a gradient regarding to their grade
         /// </summary>
@@ -353,14 +363,14 @@ namespace ParkingDemo.Utils
             {
                 corner =
                     parking.PlanPointsGrid
-                    .Branch(row)[col]+ new Point3d(-2.5, -2.5, 0);
+                    .Branch(row)[col]+ new Point3d(-parking.CellSize / 2, -parking.CellSize / 2, 0);
             }
             catch
             {
                 return;
             }
 
-            const double cellSize = 5.0;
+            double cellSize = parking.CellSize;
 
             Plane plane =
                 new Plane(

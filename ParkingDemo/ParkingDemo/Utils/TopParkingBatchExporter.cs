@@ -35,7 +35,7 @@ namespace ParkingDemo.Utils
             {
                 if (cars != null)
                 {
-                    TopParkingScene.ReadCarParts(cars, source, Transform.Identity, carParts, new HashSet<Guid>());
+                    TopParkingScene.ReadCarParts(cars, source, BakeResultsUtils.CarCenteringTransform(cars), carParts, new HashSet<Guid>());
                     if (carParts.Count == 0) throw new InvalidOperationException("The selected car block has no supported geometry.");
                 }
                 // Capture all geometry and statistics before any files are written.

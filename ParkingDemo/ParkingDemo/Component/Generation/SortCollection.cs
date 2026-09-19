@@ -79,7 +79,8 @@ namespace ParkingDemo
                 parking.EmptyCells = emptyCells;
                 var num2 = parking.PlanPointsGrid.DataCount;
                 parking.PlanCellNum = num2;
-                if (generationReset)
+                if (generationReset || (Generations.parkings.Count > 0 &&
+                    Math.Abs(Generations.parkings[0].CellSize - parking.CellSize) > 1e-8))
                     Generations = new GenerationCollection();
                 var optimization = new Optimization();
                 PathLength.GetPathLength2(parking);

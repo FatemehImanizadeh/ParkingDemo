@@ -76,10 +76,10 @@ namespace ParkingDemo
         {
             var grid = Parking.PlanPointsGrid;
             var startCellpt = grid.Branch(Parking.PathStartCell.row)[Parking.PathStartCell.col];
-            var startRecBase = startCellpt + new Vector3d(-2.5, -2.5, 0);
+            var startRecBase = startCellpt + new Vector3d(-Parking.CellSize / 2, -Parking.CellSize / 2, 0);
             var startCellPlane = Plane.WorldXY;
             startCellPlane.Origin = startRecBase;
-            var startCellRec = new Rectangle3d(startCellPlane, 5, 5);
+            var startCellRec = new Rectangle3d(startCellPlane, Parking.CellSize, Parking.CellSize);
             Parking.ParkingEntranceCell = startCellRec;
         }
         public static DataTree<Point3d> CreateGrid(int row, int col, double size)
@@ -139,7 +139,7 @@ namespace ParkingDemo
                 }
             return mtx;
         }
-        public static Matrix GridToMatrixWithExcludeCrvs(DataTree<Point3d> ptGrid, int row, int col, Curve Outline, List<Curve> Exclutions, out List<Rectangle3d> ExcludeCells)
+        public static Matrix GridToMatrixWithExcludeCrvs(DataTree<Point3d> ptGrid, int row, int col, Curve Outline, List<Curve> Exclutions, out List<Rectangle3d> ExcludeCells, double cellSize = 5.0)
         {
             var excludeCells = new List<Rectangle3d>();
             var mtx = new Matrix(row, col);
@@ -161,10 +161,10 @@ namespace ParkingDemo
                         if (containment2 == PointContainment.Inside)
                         {
                             mtx[i, j] = 5;
-                            var basePt = ptGrid.Branch(i)[j] + new Vector3d(-2.5, -2.5, 0);
+                            var basePt = ptGrid.Branch(i)[j] + new Vector3d(-cellSize / 2, -cellSize / 2, 0);
                             var plane = Plane.WorldXY;
                             plane.Origin = basePt;
-                            var rec = new Rectangle3d(plane, 5, 5);
+                            var rec = new Rectangle3d(plane, cellSize, cellSize);
                             excludeCells.Add(rec);
                         }
                         else
@@ -199,16 +199,16 @@ namespace ParkingDemo
             }
            // Parallel.For(0, PlanMatrix.RowCount, i => { Parallel.For(0, PlanMatrix.ColumnCount, j => { PlanMatrix[i, j] = ((PlanMatrix[i, j] == 5) || (PlanMatrix[i, j] == 4)) ? 0 : PlanMatrix[i, j]; }); });
         }
-        public static DataTree<Rectangle3d> CellularOutline(DataTree<Point3d> ptGrid, Matrix Gridmtx)
+        public static DataTree<Rectangle3d> CellularOutline(DataTree<Point3d> ptGrid, Matrix Gridmtx, double cellSize = 5.0)
         {
             var recs = new DataTree<Rectangle3d>();
-            var transformvec = new Vector3d(-2.5, -2.5, 0);
+            var transformvec = new Vector3d(-cellSize / 2, -cellSize / 2, 0);
             for (int i = 0; i < Gridmtx.RowCount; i++)
                 for (int j = 0; j < Gridmtx.ColumnCount; j++)
                 {
                     if (Gridmtx[i, j] != 0)
                     {
-                        var rec = new Rectangle3d(new Plane(ptGrid.Branch(i)[j] + transformvec, Vector3d.ZAxis), 5, 5);
+                        var rec = new Rectangle3d(new Plane(ptGrid.Branch(i)[j] + transformvec, Vector3d.ZAxis), cellSize, cellSize);
                         var path = new GH_Path(i, j);// چرا اینجا -۲ زدم؟؟؟؟؟!!!!!!
                         recs.Add(rec, path);
                     }
@@ -820,10 +820,10 @@ namespace ParkingDemo
             var vecbase = new Vector3d(new Point3d(grid.Branch(n)[m]));
             var directionTransforms = new[]
             {
-        Transform.Translation(vecbase + new Vector3d(0, 5, 0)) * Transform.Rotation(-Math.PI / 2, Plane.WorldXY.Origin), // up
-        Transform.Translation(vecbase + new Vector3d(-5, 0, 0)),                                                          // left
-        Transform.Translation(vecbase + new Vector3d(5, 0, 0)) * Transform.Rotation(Math.PI, Plane.WorldXY.Origin),      // right
-        Transform.Translation(vecbase + new Vector3d(0, -5, 0)) * Transform.Rotation(Math.PI / 2, Plane.WorldXY.Origin)  // down
+        Transform.Translation(vecbase + new Vector3d(0, Parking.CellSize, 0)) * Transform.Rotation(-Math.PI / 2, Plane.WorldXY.Origin), // up
+        Transform.Translation(vecbase + new Vector3d(-Parking.CellSize, 0, 0)),                                                          // left
+        Transform.Translation(vecbase + new Vector3d(Parking.CellSize, 0, 0)) * Transform.Rotation(Math.PI, Plane.WorldXY.Origin),      // right
+        Transform.Translation(vecbase + new Vector3d(0, -Parking.CellSize, 0)) * Transform.Rotation(Math.PI / 2, Plane.WorldXY.Origin)  // down
     };
             var directionPaths = new[]
             {
@@ -1080,10 +1080,10 @@ namespace ParkingDemo
             var vecbase = new Vector3d(new Point3d(grid.Branch(n)[m]));
             var directionTransforms = new[]
             {
-        Transform.Translation(vecbase + new Vector3d(0, 5, 0)) * Transform.Rotation(-Math.PI / 2, Plane.WorldXY.Origin), // up
-        Transform.Translation(vecbase + new Vector3d(-5, 0, 0)),                                                          // left
-        Transform.Translation(vecbase + new Vector3d(5, 0, 0)) * Transform.Rotation(Math.PI, Plane.WorldXY.Origin),      // right
-        Transform.Translation(vecbase + new Vector3d(0, -5, 0)) * Transform.Rotation(Math.PI / 2, Plane.WorldXY.Origin)  // down
+        Transform.Translation(vecbase + new Vector3d(0, Parking.CellSize, 0)) * Transform.Rotation(-Math.PI / 2, Plane.WorldXY.Origin), // up
+        Transform.Translation(vecbase + new Vector3d(-Parking.CellSize, 0, 0)),                                                          // left
+        Transform.Translation(vecbase + new Vector3d(Parking.CellSize, 0, 0)) * Transform.Rotation(Math.PI, Plane.WorldXY.Origin),      // right
+        Transform.Translation(vecbase + new Vector3d(0, -Parking.CellSize, 0)) * Transform.Rotation(Math.PI / 2, Plane.WorldXY.Origin)  // down
     };
             var directionPaths = new[]
             {
@@ -1255,10 +1255,10 @@ namespace ParkingDemo
             var vecbase = new Vector3d(new Point3d(grid.Branch(n)[m]));
             var directionTransforms = new[]
             {
-        Transform.Translation(vecbase + new Vector3d(0, 5, 0)) * Transform.Rotation(-Math.PI / 2, Plane.WorldXY.Origin), // up
-        Transform.Translation(vecbase + new Vector3d(-5, 0, 0)),                                                          // left
-        Transform.Translation(vecbase + new Vector3d(5, 0, 0)) * Transform.Rotation(Math.PI, Plane.WorldXY.Origin),      // right
-        Transform.Translation(vecbase + new Vector3d(0, -5, 0)) * Transform.Rotation(Math.PI / 2, Plane.WorldXY.Origin)  // down
+        Transform.Translation(vecbase + new Vector3d(0, Parking.CellSize, 0)) * Transform.Rotation(-Math.PI / 2, Plane.WorldXY.Origin), // up
+        Transform.Translation(vecbase + new Vector3d(-Parking.CellSize, 0, 0)),                                                          // left
+        Transform.Translation(vecbase + new Vector3d(Parking.CellSize, 0, 0)) * Transform.Rotation(Math.PI, Plane.WorldXY.Origin),      // right
+        Transform.Translation(vecbase + new Vector3d(0, -Parking.CellSize, 0)) * Transform.Rotation(Math.PI / 2, Plane.WorldXY.Origin)  // down
     };
             var directionPaths = new[]
             {
@@ -1452,10 +1452,10 @@ namespace ParkingDemo
             var path = new GH_Path(pathindex);
             int nextcell;
             var allmainPathPtslocs = new DataTree<int[]>();
-            var vplus = new Vector3d(0, 5, 0);
-            var vminus = new Vector3d(0, -5, 0);
-            var hplus = new Vector3d(5, 0, 0);
-            var hminus = new Vector3d(-5, 0, 0);
+            var vplus = new Vector3d(0, Parking.CellSize, 0);
+            var vminus = new Vector3d(0, -Parking.CellSize, 0);
+            var hplus = new Vector3d(Parking.CellSize, 0, 0);
+            var hminus = new Vector3d(-Parking.CellSize, 0, 0);
             var vecbase = new Vector3d(new Point3d(grid.Branch(n)[m]));
             Transform rotation0 = new Transform(Transform.Rotation(-Math.PI / 2, Plane.WorldXY.Origin));
             Transform rotation2 = new Transform(Transform.Rotation(Math.PI, Plane.WorldXY.Origin));
