@@ -43,8 +43,12 @@ namespace ParkingDemo.Utils
                 var rasterCars = TopParkingImage.Tessellate(carParts, tolerance);
                 Directory.CreateDirectory(staging);
                 started = true;
+                string imagesFolder = Path.Combine(staging, "Images");
+                Directory.CreateDirectory(imagesFolder);
                 foreach (var scene in scenes)
-                    TopParkingImage.Save(scene, rasterCars, Path.Combine(staging, scene.FileStem + ".png"), imageWidth, units, tolerance);
+                    TopParkingImage.Save(scene, rasterCars, Path.Combine(imagesFolder, scene.FileStem + ".png"), imageWidth, units, tolerance);
+                TopParkingImage.SaveOverview(scenes.Select(scene => Path.Combine(imagesFolder, scene.FileStem + ".png")).ToList(),
+                    Path.Combine(staging, "TopParkingOptions.png"), imageWidth);
                 WriteModel(scenes, carParts, source, Path.Combine(staging, "TopParkingOptions.3dm"));
                 // Only completed packages receive the final name; previous exports are never overwritten.
                 Directory.Move(staging, completed);

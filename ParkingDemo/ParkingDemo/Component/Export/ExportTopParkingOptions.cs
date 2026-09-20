@@ -22,7 +22,7 @@ namespace ParkingDemo.Component.Export
         internal bool CanExport => !Locked && !_exporting && _selected.Count > 0;
 
         public ExportTopParkingOptions() : base("Export Top Parking Options", "TopExport",
-            "Exports the highest-scoring parking options as annotated top-view PNGs and a shared editable Rhino file.",
+            "Exports top options as individual PNGs in Images, a combined PNG overview and an editable Rhino file.",
             "ParkingDemo", "Export") { }
 
         protected override void RegisterInputParams(GH_InputParamManager pManager)
@@ -114,7 +114,7 @@ namespace ParkingDemo.Component.Export
                     Message = "Exported " + selected.Length;
                     RhinoApp.WriteLine("Top parking export: " + folder);
                     MessageBox.Show(Grasshopper.Instances.DocumentEditor,
-                        selected.Length + " PNG files and TopParkingOptions.3dm were saved to:" + Environment.NewLine + folder,
+                        selected.Length + " PNG files in Images, plus TopParkingOptions.png and TopParkingOptions.3dm were saved to:" + Environment.NewLine + folder,
                         "Parking export complete", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
             }

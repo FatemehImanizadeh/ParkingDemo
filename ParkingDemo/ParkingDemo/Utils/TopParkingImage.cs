@@ -125,6 +125,38 @@ namespace ParkingDemo.Utils
             }
         }
 
+        public static void SaveOverview(IReadOnlyList<string> images, string path, int imageWidth)
+        {
+            if (images == null || images.Count == 0) throw new ArgumentException("No parking images to combine.");
+            // Same rank order and column count as the Rhino file; reuse annotated plans without remeshing.
+            int columns = (int)Math.Ceiling(Math.Sqrt(images.Count));
+            int rows = (int)Math.Ceiling((double)images.Count / columns);
+            const int gap = 16;
+            // Bound bitmap memory for large collections; individual PNGs retain their requested resolution.
+            int tileWidth = Math.Min(imageWidth, Math.Min((6000 - gap * (columns + 1)) / columns,
+                (int)((6000 - gap * (rows + 1)) / (rows * 0.85))));
+            if (tileWidth < 1) throw new InvalidOperationException("Too many options for a single overview image.");
+            int tileHeight = Math.Max(1, (int)(tileWidth * 0.85));
+            using (var bitmap = new Bitmap(columns * tileWidth + (columns + 1) * gap,
+                rows * tileHeight + (rows + 1) * gap))
+            using (var graphics = Graphics.FromImage(bitmap))
+            {
+                bitmap.SetResolution(200, 200);
+                graphics.Clear(Color.White);
+                graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
+                for (int i = 0; i < images.Count; i++)
+                    using (var image = Image.FromFile(images[i]))
+                    {
+                        var tile = new Rectangle(gap + (i % columns) * (tileWidth + gap),
+                            gap + (i / columns) * (tileHeight + gap), tileWidth, tileHeight);
+                        graphics.DrawImage(image, tile);
+                        graphics.DrawRectangle(Pens.LightGray, tile);
+                    }
+                bitmap.Save(path, ImageFormat.Png);
+            }
+        }
+
         private static void Draw(Graphics graphics, IEnumerable<Primitive> primitives, Transform transform,
             Func<Point3d, PointF> project, int width)
         {
