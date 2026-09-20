@@ -84,15 +84,19 @@ namespace ParkingDemo
                     Generations = new GenerationCollection();
                 var optimization = new Optimization();
                 PathLength.GetPathLength2(parking);
-                Optimization.OptimizationFunction(optimization, parking);
+                parking.Score = 0;
+                parking.HasValidScore = false;
                 if (parking.IsGenerationValid) 
                 {
                     Generations.parkings.Add(parking);
                 }
 
+                // New options may change the normalization range for the entire collection.
+                Optimization.OptimizationFunction(optimization, Generations.parkings);
                 // Sort from highest score to lowest score
                 Generations.parkings.Sort(
-                    (parkingA, parkingB) => parkingB.Score.CompareTo(parkingA.Score)
+                    (parkingA, parkingB) => parkingA.HasValidScore == parkingB.HasValidScore
+                        ? parkingB.Score.CompareTo(parkingA.Score) : parkingB.HasValidScore.CompareTo(parkingA.HasValidScore)
                 );
                 DA.SetData(0, parking);
                 DA.SetData(1, Generations);

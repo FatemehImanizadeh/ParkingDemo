@@ -146,6 +146,8 @@ namespace ParkingDemo.Utils
 
         public static int GetPathLength2(Parking Parking)
         {
+            Parking.PathLengthVariance = Parking.TurnsVariance = null;
+            double lengthMean = 0, lengthM2 = 0, turnsMean = 0, turnsM2 = 0;
             var mtx = Parking.PlanMatrix.Duplicate();
 
             var startCell = Parking.PathStartCell;
@@ -157,7 +159,15 @@ namespace ParkingDemo.Utils
             var grid = Parking.PlanPointsGrid;
             var pathList = new List<Point3d>();
             var linesList = new List<Line>();
-            int lotNum = 0; 
+            int lotNum = 0;
+            void SaveSpread()
+            {
+                // Population variance = M2 / N: all counted lots, not a sample. One lot gives zero.
+                // Publish only on completed BFS; no lots or the iteration limit leaves statistics null.
+                if (lotNum == 0) return;
+                Parking.PathLengthVariance = Math.Max(0, lengthM2 / lotNum);
+                Parking.TurnsVariance = Math.Max(0, turnsM2 / lotNum);
+            }
             //var cellsGrade = new ParkingUtils.PathInfo.Cell[100][];
             var allLotTransforms = new DataTree<Transform>();
             var allCellsWithGrade = new DataTree<Rectangle3d>();
@@ -244,7 +254,15 @@ namespace ParkingDemo.Utils
                                                 totalDirShift += cell.DirShift;
                                                 var cellTransform = SetCarTransformations(Parking,  cellnew);
                                                 allLotTransforms.Add(cellTransform, new Grasshopper.Kernel.Data.GH_Path(currentGrade));
-                                                lotNum++; 
+                                                lotNum++;
+                                                // Welford's online update: stable spread without storing routes or changing BFS.
+                                                // Match the existing averages: grade * CellSize and the parent path's DirShift.
+                                                double distance = currentGrade * Parking.CellSize;
+                                                double lengthDelta = distance - lengthMean, turnsDelta = cell.DirShift - turnsMean;
+                                                lengthMean += lengthDelta / lotNum;
+                                                turnsMean += turnsDelta / lotNum;
+                                                lengthM2 += lengthDelta * (distance - lengthMean);
+                                                turnsM2 += turnsDelta * (cell.DirShift - turnsMean);
                                             }
                                             index++;
                                         }
@@ -273,6 +291,7 @@ namespace ParkingDemo.Utils
                         Parking.CarTransforms = allLotTransforms;
                         Parking.CellsWithGrade = allCellsWithGrade;
                         Parking.LotNumber = lotNum; 
+                        SaveSpread();
                         return currentGrade;
                         currentGradeList.Clear();
                     }
@@ -302,6 +321,7 @@ namespace ParkingDemo.Utils
                     Parking.CarTransforms = allLotTransforms;
                     Parking.CellsWithGrade = allCellsWithGrade;
                     Parking.LotNumber = lotNum; 
+                    SaveSpread();
                     return currentGrade;
                 }
                 //return currentGrade; 

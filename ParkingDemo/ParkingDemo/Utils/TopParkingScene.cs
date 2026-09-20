@@ -42,7 +42,7 @@ namespace ParkingDemo.Utils
         {
             if (parkings == null) throw new ArgumentNullException(nameof(parkings));
             if (count < 1) throw new ArgumentOutOfRangeException(nameof(count), "Top count must be at least 1.");
-            return parkings.Where(p => p != null && p.IsGenerationValid &&
+            return parkings.Where(p => p != null && p.IsGenerationValid && p.HasValidScore &&
                     !double.IsNaN(p.Score) && !double.IsInfinity(p.Score))
                 .OrderByDescending(p => p.Score).Take(count).ToList();
         }

@@ -36,7 +36,8 @@ namespace ParkingDemo.Component.Generation
             var mainPathPts = parking.PathPoints; 
             mainPathConnection.CreateConnectionPath( parking);
             var optimization = new Optimization();
-            Optimization.OptimizationFunction(optimization, parking);
+            // A singleton has no alternatives; collection ranking happens in SortResults.
+            Optimization.OptimizationFunction(optimization, new[] { parking });
             DA.SetData(0, parking); 
 
 

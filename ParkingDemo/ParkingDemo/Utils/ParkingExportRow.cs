@@ -26,7 +26,7 @@ namespace ParkingDemo.Utils
             Rank = rank;
             ParkingId = parking.ParkingID;
             ParkingCount = parking.LotNumber;
-            Score = IsFinite(parking.Score) ? (double?)parking.Score : null;
+            Score = parking.HasValidScore && IsFinite(parking.Score) ? (double?)parking.Score : null;
             if (parking.LotNumber > 0)
             {
                 if (IsFinite(parking.CellSize) && parking.CellSize > 0)
@@ -47,8 +47,8 @@ namespace ParkingDemo.Utils
             // LINQ's stable ordering preserves collection order for equal scores.
             // Unscored results remain visible, after all finite scores.
             return parkings.Where(parking => parking != null)
-                .OrderByDescending(parking => IsFinite(parking.Score))
-                .ThenByDescending(parking => IsFinite(parking.Score) ? parking.Score : 0)
+                .OrderByDescending(parking => parking.HasValidScore && IsFinite(parking.Score))
+                .ThenByDescending(parking => parking.HasValidScore && IsFinite(parking.Score) ? parking.Score : 0)
                 .Select((parking, index) => new ParkingExportRow(parking, index + 1))
                 .ToArray();
         }

@@ -24,6 +24,11 @@ namespace ParkingDemo.Utils
         public int PlanCellNum { get; set; }
         public int EmptyCells { get; set; }
         public int TotalDirShift { get; set; }
+        // Population statistics for the same lots counted in LotNumber. Null means unavailable/incomplete.
+        public double? PathLengthVariance { get; internal set; } // Squared model units.
+        public double? PathLengthStdDev => PathLengthVariance.HasValue ? (double?)Math.Sqrt(PathLengthVariance.Value) : null;
+        public double? TurnsVariance { get; internal set; } // Squared turn counts.
+        public double? TurnsStdDev => TurnsVariance.HasValue ? (double?)Math.Sqrt(TurnsVariance.Value) : null;
         private long _GenerationTime = 0;
 
         public long GenerationTime { get { return _GenerationTime; } set { _GenerationTime = value; } }
@@ -38,6 +43,9 @@ namespace ParkingDemo.Utils
             get => _PathLines; set { this._PathLines = value; }
         }
         public double Score { get; set; }
+        public bool HasValidScore { get; internal set; } // Distinguish unscored options from a valid zero.
+        // Scoring changes only Score; share geometry while keeping upstream scores untouched.
+        internal Parking CopyForScoring() => (Parking)MemberwiseClone();
         private Guid _parkingID = Guid.NewGuid();
         private bool _IsGenerationValid = true;
         public bool IsGenerationValid { get { return _IsGenerationValid; } set { _IsGenerationValid = value; } }

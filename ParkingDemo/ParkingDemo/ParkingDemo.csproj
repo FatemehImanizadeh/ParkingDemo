@@ -11,7 +11,6 @@
 	
   <ItemGroup>
     <Compile Remove="Component\Analyze\GetPathLength.cs" />
-    <Compile Remove="Component\Analyze\SetOptimizationWeights.cs" />
     <Compile Remove="Component\Export\ExportImage.cs" />
     <Compile Remove="Component\Generation\ColumnGenerator.cs" />
     <Compile Remove="Component\Generation\ParkingPathConnection.cs" />
