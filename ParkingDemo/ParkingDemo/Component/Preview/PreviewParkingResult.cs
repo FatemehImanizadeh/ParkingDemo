@@ -96,13 +96,12 @@ namespace ParkingDemo
             //
             // Using Generic allows us to unwrap it ourselves reliably.
             pManager.AddGenericParameter(
-                "Car Block",
+                "Car Block (legacy)",
                 "Blk",
-                "Reference an existing double-car block instance in Rhino. " +
-                "The block definition will be used for all generated cars.",
+                "Unused; cars_2/cars_3 are selected internally from cell size.",
                 GH_ParamAccess.item);
 
-            // Cars are only needed if cars are actually shown/baked.
+            // Keep the optional legacy socket so existing definitions retain their input indices.
             pManager[1].Optional = true;
 
 
@@ -202,7 +201,7 @@ namespace ParkingDemo
                 return;
 
 
-            // Car Block is optional - only needed if cars are shown/baked.
+            // Retained for compatibility; geometry comes from the embedded car blocks.
             DA.GetData(1, ref carBlockGoo);
 
             DA.GetData(2, ref bakeCars);
@@ -348,16 +347,13 @@ namespace ParkingDemo
             if (bakeCars)
             {
                 carBlockDefinition =
-                    ResolveCarBlockDefinition(
-                        carBlockGoo,
-                        doc);
+                    InternalCarBlocks.Definition(parking, doc);
 
                 if (carBlockDefinition == null)
                 {
                     AddRuntimeMessage(
                         GH_RuntimeMessageLevel.Error,
-                        "Car Block must reference an existing block instance " +
-                        "placed in the Rhino document.");
+                        "Could not load the embedded car block.");
 
                     return;
                 }
@@ -448,6 +444,8 @@ namespace ParkingDemo
                     pg.Walls,
                     wallLayerIndex);
             }
+            if (bakeEntrance && pg.Ramp.Count > 0)
+                BakeResultsUtils.BakeGeometryColorPairs(doc, pg.Ramp, EnsureChildLayer(doc, "Parking", "Ramp"));
 
 
             // ===============================================================
@@ -772,6 +770,7 @@ namespace ParkingDemo
                     GrowBox(ref box, pg.ExcludedCells);
                     GrowBox(ref box, pg.PathRibbons);
                     GrowBox(ref box, pg.Walls);
+                    GrowBox(ref box, pg.Ramp);
 
                     if (pg.EntranceCell?.Geometry != null)
                         box.Union(pg.EntranceCell.Geometry.GetBoundingBox(true));
@@ -871,13 +870,21 @@ namespace ParkingDemo
             if (_showEntrance &&
                 pg.EntranceCell != null)
             {
+                // Above the grade fill (0.002), below the circulation ribbon (0.004).
+                args.Display.PushModelTransform(Transform.Translation(0, 0, 0.003));
+                try
+                {
                 DrawShadedBreps(
                     args,
                     new List<GeometryColorPair>
                     {
                 pg.EntranceCell
                     });
+                }
+                finally { args.Display.PopModelTransform(); }
             }
+
+            if (_showEntrance) DrawShadedBreps(args, pg.Ramp);
 
 
             // ============================================================
@@ -919,6 +926,7 @@ namespace ParkingDemo
             // the only one that needs a wire pass.
             if (_showPath)
                 DrawWireCurves(args, pg.PathRibbons);
+            if (_showEntrance) DrawWireCurves(args, pg.Ramp, 1);
         }
 
 
@@ -946,7 +954,8 @@ namespace ParkingDemo
 
         private static void DrawWireCurves(
             IGH_PreviewArgs args,
-            List<GeometryColorPair> items)
+            List<GeometryColorPair> items,
+            int thickness = 2)
         {
             if (items == null)
                 return;
@@ -958,102 +967,19 @@ namespace ParkingDemo
                     args.Display.DrawCurve(
                         curve,
                         item.Color,
-                        2);
+                        thickness);
                 }
             }
         }
 
 
         /// <summary>
-        /// Draws the parked cars live, without baking. Cars are Rhino
-        /// block instances rather than raw geometry, so unlike the other
-        /// elements they still need the Car Block reference at draw time;
-        /// only the block definition's own geometry is duplicated and
-        /// transformed per car - nothing is added to the document.
+        /// Draws the embedded cars using display transforms without modifying the document.
         /// </summary>
         private void DrawCarsPreview(
             IGH_PreviewArgs args)
         {
-            if (_previewParking?.CarTransforms == null)
-                return;
-
-            if (_carBlockGoo == null)
-                return;
-
-            RhinoDoc doc =
-                RhinoDoc.ActiveDoc;
-
-            if (doc == null)
-                return;
-
-            InstanceDefinition carBlockDefinition =
-                ResolveCarBlockDefinition(
-                    _carBlockGoo,
-                    doc);
-
-            if (carBlockDefinition == null)
-                return;
-
-            RhinoObject[] defObjects =
-                carBlockDefinition.GetObjects();
-
-            if (defObjects == null || defObjects.Length == 0)
-                return;
-
-            var centering = BakeResultsUtils.CarCenteringTransform(carBlockDefinition);
-            foreach (var branch in _previewParking.CarTransforms.Branches)
-            {
-                if (branch == null)
-                    continue;
-
-                foreach (Transform carTransform in branch)
-                {
-                    foreach (RhinoObject obj in defObjects)
-                    {
-                        GeometryBase geo = obj.Geometry;
-
-                        if (geo == null)
-                            continue;
-
-                        Color objectColor =
-                            obj.Attributes.DrawColor(doc);
-
-                        if (geo is Brep sourceBrep)
-                        {
-                            Brep transformed =
-                                (Brep)sourceBrep.Duplicate();
-
-                            transformed.Transform(carTransform * centering);
-
-                            args.Display.DrawBrepShaded(
-                                transformed,
-                                new DisplayMaterial(objectColor));
-                        }
-                        else if (geo is Mesh sourceMesh)
-                        {
-                            Mesh transformed =
-                                (Mesh)sourceMesh.Duplicate();
-
-                            transformed.Transform(carTransform * centering);
-
-                            args.Display.DrawMeshShaded(
-                                transformed,
-                                new DisplayMaterial(objectColor));
-                        }
-                        else if (geo is Curve sourceCurve)
-                        {
-                            Curve transformed =
-                                (Curve)sourceCurve.Duplicate();
-
-                            transformed.Transform(carTransform * centering);
-
-                            args.Display.DrawCurve(
-                                transformed,
-                                objectColor);
-                        }
-                    }
-                }
-            }
+            InternalCarBlocks.Draw(args, _previewParking);
         }
 
 

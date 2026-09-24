@@ -26,6 +26,8 @@ namespace ParkingDemo.Component.Start
         public override Guid ComponentGuid => new Guid("71338C6C-8DA5-47F8-A8C1-74A447B94FD0");
         public override void CreateAttributes() => m_attributes = new StartGenerationFastAttributes(this);
 
+        protected override bool CellSizeLocked => Running;
+
         public void SetDuration(int seconds)
         {
             if (_running || (seconds != 0 && seconds != 10 && seconds != 20 && seconds != 60)) return;
@@ -67,7 +69,7 @@ namespace ParkingDemo.Component.Start
             if (!_running) { Message = "Press Start"; return; }
             if (DA.Iteration > 0)
             {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Supply one outline and one cell size per component.");
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Supply one outline per component.");
                 StopFast();
                 return;
             }
@@ -94,7 +96,7 @@ namespace ParkingDemo.Component.Start
             if (_produced) { _completed++; _produced = false; }
             // Missing required inputs may prevent SolveInstance from being called at all.
             if (RuntimeMessages(GH_RuntimeMessageLevel.Error).Count > 0 ||
-                Params.Input[0].VolatileDataCount == 0 || Params.Input[2].VolatileDataCount == 0)
+                Params.Input[0].VolatileDataCount == 0)
             { StopFast(); return; }
             if (TimeExpired || Locked || !_document.Enabled || !GH_Document.EnableSolutions)
             { StopFast(); return; }
@@ -127,6 +129,7 @@ namespace ParkingDemo.Component.Start
         public override bool Write(GH_IWriter writer)
         {
             writer.SetInt32("FastDurationSeconds", DurationSeconds);
+            writer.SetDouble("FastCellSizeMeters", CellSizeMeters);
             return base.Write(writer);
         }
 
@@ -134,6 +137,8 @@ namespace ParkingDemo.Component.Start
         {
             StopFast(); // Opening a file never starts generation automatically.
             bool result = base.Read(reader);
+            double size = reader.ItemExists("FastCellSizeMeters") ? reader.GetDouble("FastCellSizeMeters") : 5.0;
+            CellSizeMeters = size == 5.5 || size == 6.5 ? size : 5.0;
             int seconds = reader.ItemExists("FastDurationSeconds") ? reader.GetInt32("FastDurationSeconds") : 10;
             DurationSeconds = seconds == 0 || seconds == 20 || seconds == 60 ? seconds : 10;
             return result;

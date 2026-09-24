@@ -18,6 +18,7 @@ namespace ParkingDemo.Utils
         public int TurnCount = 0;           // how many times this path has already turned
         public const int MaxTurnsPerPath = 1;   // you asked for "rotate once"
         public int LotNumber { get; set; }
+        public int CarsPerCell { get; internal set; } = 2;
         /// <summary>Grid-cell edge length in Rhino model units, set when the grid is generated.</summary>
         public double CellSize { get; set; } = 5.0;
         public int PathCellNumber { get; set; }
@@ -86,6 +87,8 @@ namespace ParkingDemo.Utils
         public Curve Outline { get; set; }
         public DataTree<Point3d> SidePoints { get; set; }
         public List<int> RampInfo { get; set; }
+        // Owned ramp data; null when this parking has no ramp.
+        public RampLayout Ramp { get; internal set; }
         public ParkingUtils.PathInfo.Cell RampEndCell { get; set; }
         public ParkingUtils.PathInfo.Cell PathStartCell { get; set; }
         public Guid ParkingID { get => this._parkingID; set { this._parkingID = value; } }

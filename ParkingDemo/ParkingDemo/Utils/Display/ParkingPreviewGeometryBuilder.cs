@@ -39,6 +39,7 @@ namespace ParkingDemo.Utils
                 ExcludedCells = BuildExcludedCells(parking, tolerance),
                 PathRibbons = BuildContinuousPath(parking, pathWidth, tolerance),
                 EntranceCell = BuildEntranceCell(parking, tolerance),
+                Ramp = RampLayout.Build(parking, tolerance),
                 Walls = BuildParkingWall(parking, wallThickness, tolerance)
             };
 

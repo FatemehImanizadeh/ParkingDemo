@@ -47,6 +47,7 @@ namespace ParkingDemo.Utils
         public List<GeometryColorPair> ExcludedCells { get; set; } = new List<GeometryColorPair>();
         public List<GeometryColorPair> PathRibbons { get; set; } = new List<GeometryColorPair>();
         public GeometryColorPair EntranceCell { get; set; }
+        public List<GeometryColorPair> Ramp { get; set; } = new List<GeometryColorPair>();
         public List<GeometryColorPair> Walls { get; set; } = new List<GeometryColorPair>();
     }
 }

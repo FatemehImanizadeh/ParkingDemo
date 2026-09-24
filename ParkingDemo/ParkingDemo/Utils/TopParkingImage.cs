@@ -121,6 +121,8 @@ namespace ParkingDemo.Utils
                 graphics.DrawString(footer, font, ink, margin, width * 0.786f);
                 if (carTemplate.Count == 0)
                     graphics.DrawString("Car block not supplied; cars are omitted.", font, ink, margin, width * 0.813f);
+                else if (scene.Parts.Any(part => part.Section == "Ramp"))
+                    graphics.DrawString("Ramp: gray to blue; arrows point toward the parking entrance.", font, ink, margin, width * 0.813f);
                 bitmap.Save(path, ImageFormat.Png);
             }
         }

@@ -6,7 +6,6 @@ using Grasshopper.GUI;
 using Grasshopper.GUI.Canvas;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Attributes;
-using Grasshopper.Kernel.Types;
 using ParkingDemo.Utils;
 using Rhino;
 
@@ -16,7 +15,6 @@ namespace ParkingDemo.Component.Export
     public sealed class ExportTopParkingOptions : GH_Component
     {
         private List<Parking> _selected = new List<Parking>();
-        private IGH_Goo _carBlock;
         private int _imageWidth = 2000;
         private bool _exporting;
         internal bool CanExport => !Locked && !_exporting && _selected.Count > 0;
@@ -28,7 +26,7 @@ namespace ParkingDemo.Component.Export
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
             pManager.AddGenericParameter("Generation Collection", "GC", "Connect one generated parking collection from SortResults.", GH_ParamAccess.item);
-            pManager.AddGenericParameter("Car Block", "Blk", "Optional double-car block instance, as used by Preview Parking Result.", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Car Block (legacy)", "Blk", "Unused; cars_2/cars_3 are selected internally from cell size.", GH_ParamAccess.item);
             pManager[1].Optional = true;
             pManager.AddIntegerParameter("Top Count", "N", "Number of best-scoring valid options to export; fewer are used if the collection is smaller.", GH_ParamAccess.item, 10);
             pManager.AddIntegerParameter("PNG Width", "W", "Width of each annotated PNG in pixels, from 800 to 4096.", GH_ParamAccess.item, 2000);
@@ -43,14 +41,12 @@ namespace ParkingDemo.Component.Export
         public override void ClearData()
         {
             _selected?.Clear();
-            _carBlock = null;
             base.ClearData();
         }
 
         protected override void BeforeSolveInstance()
         {
             _selected.Clear();
-            _carBlock = null;
             base.BeforeSolveInstance();
         }
 
@@ -67,7 +63,6 @@ namespace ParkingDemo.Component.Export
             int count = 10;
             int width = 2000;
             if (!DA.GetData(0, ref collection) || collection?.parkings == null) return;
-            DA.GetData(1, ref _carBlock);
             if (!DA.GetData(2, ref count) || !DA.GetData(3, ref width)) return;
             if (count < 1 || width < 800 || width > 4096)
             {
@@ -81,8 +76,7 @@ namespace ParkingDemo.Component.Export
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "No valid options with finite scores are available.");
             else if (_selected.Count < count)
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "The collection contains fewer valid scored options than requested; all available options will be exported.");
-            if (_carBlock == null)
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "Connect a Car Block to include cars in both PNG and Rhino exports.");
+
             DA.SetDataList(0, _selected);
             DA.SetDataList(1, _selected.ConvertAll(parking => parking.Score));
         }
@@ -94,14 +88,11 @@ namespace ParkingDemo.Component.Export
             if (source == null)
             { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Open a Rhino document first."); return; }
             var selected = _selected.ToArray();
-            var carGoo = _carBlock;
             int width = _imageWidth;
             _exporting = true;
             try
             {
-                var definition = PreviewParkingResult.ResolveCarBlockDefinition(carGoo, source);
-                if (carGoo != null && definition == null)
-                    throw new InvalidOperationException("Car Block must reference a block instance in the active Rhino document.");
+
                 using (var dialog = new FolderBrowserDialog
                 {
                     Description = "Choose a folder for the top parking PNGs and Rhino file. A new export subfolder will be created.",
@@ -110,7 +101,7 @@ namespace ParkingDemo.Component.Export
                 {
                     if (dialog.ShowDialog(Grasshopper.Instances.DocumentEditor) != DialogResult.OK) return;
                     // Export directly from the click handler: normal solves never write files or bake geometry.
-                    string folder = TopParkingBatchExporter.Export(selected, definition, source, dialog.SelectedPath, width);
+                    string folder = TopParkingBatchExporter.Export(selected, source, dialog.SelectedPath, width);
                     Message = "Exported " + selected.Length;
                     RhinoApp.WriteLine("Top parking export: " + folder);
                     MessageBox.Show(Grasshopper.Instances.DocumentEditor,

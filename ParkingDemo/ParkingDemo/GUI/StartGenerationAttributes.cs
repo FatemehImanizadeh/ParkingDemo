@@ -29,6 +29,8 @@ namespace ParkingDemo.Component.Start
 
         private RectangleF _startBounds;
         private RectangleF _stopBounds;
+        private readonly RectangleF[] _sizeBounds = new RectangleF[3];
+        private readonly double[] _sizes = { 5.0, 5.5, 6.5 };
 
         private const float PanelWidth = 196f;
         private const float UiHeight = 188f;
@@ -84,9 +86,13 @@ namespace ParkingDemo.Component.Start
             float uiTop =
                 originalBounds.Bottom + 7f;
 
+            float sizeWidth = (contentWidth - 6f) / 3f;
+            for (int i = 0; i < _sizes.Length; i++)
+                _sizeBounds[i] = new RectangleF(contentLeft + i * (sizeWidth + 3f), uiTop + 13f, sizeWidth, 23f);
+
             _rampBounds = new RectangleF(
                 contentLeft,
-                uiTop,
+                _sizeBounds[0].Bottom + 23f,
                 contentWidth,
                 25f);
 
@@ -185,6 +191,7 @@ namespace ParkingDemo.Component.Start
                 runTop,
                 runWidth,
                 27f);
+            Bounds = new RectangleF(left, top, width, _stopBounds.Bottom + 8f - top);
         }
 
         protected override void Render(
@@ -201,6 +208,10 @@ namespace ParkingDemo.Component.Start
                 SmoothingMode.AntiAlias;
 
             DrawSeparator(graphics);
+            DrawSectionLabel(graphics, "CELL / AISLE SIZE", _sizeBounds[0].Top - 13f);
+            string[] sizeLabels = { "5 m", "5.5 m", "6.5 m" };
+            for (int i = 0; i < _sizes.Length; i++)
+                DrawOptionButton(graphics, _sizeBounds[i], sizeLabels[i], OwnerComponent.CellSizeMeters == _sizes[i]);
 
             DrawSectionLabel(
                 graphics,
@@ -312,7 +323,7 @@ namespace ParkingDemo.Component.Start
             Graphics graphics)
         {
             float y =
-                _rampBounds.Top - 17f;
+                _sizeBounds[0].Top - 17f;
 
             using var pen =
                 new Pen(
@@ -706,6 +717,14 @@ namespace ParkingDemo.Component.Start
 
             PointF location =
                 e.CanvasLocation;
+
+            for (int i = 0; i < _sizes.Length; i++)
+            {
+                if (!_sizeBounds[i].Contains(location)) continue;
+                OwnerComponent.SetCellSize(_sizes[i]);
+                sender.Refresh();
+                return GH_ObjectResponse.Handled;
+            }
 
             if (_rampBounds.Contains(location))
             {

@@ -52,6 +52,16 @@ namespace ParkingDemo.Component.GUI
             = GenerationInterval.Sec1;
 
         public bool IsAutoRunning => _isAutoRunning;
+        public double CellSizeMeters { get; protected set; } = 5.0;
+        protected virtual bool CellSizeLocked => IsAutoRunning;
+
+        public void SetCellSize(double size)
+        {
+            if (Locked || CellSizeLocked || (size != 5.0 && size != 5.5 && size != 6.5) || size == CellSizeMeters) return;
+            RecordUndoEvent("Change cell/aisle size");
+            CellSizeMeters = size;
+            ExpireSolution(true);
+        }
 
         public int IntervalMilliseconds => (int)Interval;
 
@@ -87,7 +97,6 @@ namespace ParkingDemo.Component.GUI
                 GH_ParamAccess.list);
 
             pManager[1].Optional = true;
-            pManager.AddNumberParameter("Cell Size", "S", "Square-cell size in meters (4.5–6.5).", GH_ParamAccess.item, 5.0);
         }
 
         protected override void RegisterOutputParams(
@@ -184,6 +193,16 @@ namespace ParkingDemo.Component.GUI
             };
         }
 
+        protected virtual bool ValidateCellSize(ref double cellSize)
+        {
+            if (double.IsNaN(cellSize) || cellSize < 4.5 || cellSize > 6.5)
+            {
+                StopGenerationBecauseOfError("Cell Size must be between 4.5 and 6.5 meters.");
+                return false;
+            }
+            return true;
+        }
+
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             Curve sourceOutline = null;
@@ -246,13 +265,8 @@ namespace ParkingDemo.Component.GUI
             Point3d maximumPoint =
                 boundingBox.Max;
 
-            double cellSize = 5.0;
-            if (!DA.GetData(2, ref cellSize)) return;
-            if (double.IsNaN(cellSize) || cellSize < 4.5 || cellSize > 6.5)
-            {
-                StopGenerationBecauseOfError("Cell Size must be between 4.5 and 6.5 meters.");
-                return;
-            }
+            double cellSize = CellSizeMeters;
+            if (!ValidateCellSize(ref cellSize)) return;
             cellSize *= Rhino.RhinoMath.UnitScale(Rhino.UnitSystem.Meters,
                 RhinoDoc.ActiveDoc?.ModelUnitSystem ?? Rhino.UnitSystem.Meters);
 
@@ -361,6 +375,7 @@ namespace ParkingDemo.Component.GUI
             var parking = new Parking
             {
                 CellSize = cellSize,
+                CarsPerCell = InternalCarBlocks.CountForCell(cellSize, RhinoDoc.ActiveDoc?.ModelUnitSystem ?? UnitSystem.Meters),
                 ExcludeCells = excludeCells,
                 PlanMatrix = planToMatrix,
                 PlanPointsGrid = grid,
@@ -386,6 +401,7 @@ namespace ParkingDemo.Component.GUI
 
                 RampInfo = rampInfo
             };
+            parking.Ramp = AddRamp ? RampLayout.FromParking(parking) : null;
             RhinoDoc doc = RhinoDoc.ActiveDoc;
             double tolerance = doc != null ? doc.ModelAbsoluteTolerance : 0.001;
 
@@ -476,6 +492,7 @@ namespace ParkingDemo.Component.GUI
 
         public override bool Write(GH_IWriter writer)
         {
+            writer.SetDouble("CellSizeMeters", CellSizeMeters);
             writer.SetBoolean(
                 "AddRamp",
                 AddRamp);
@@ -501,6 +518,8 @@ namespace ParkingDemo.Component.GUI
 
         public override bool Read(GH_IReader reader)
         {
+            double size = reader.ItemExists("CellSizeMeters") ? reader.GetDouble("CellSizeMeters") : 5.0;
+            CellSizeMeters = size == 5.5 || size == 6.5 ? size : 5.0;
             AddRamp =
                 reader.ItemExists("AddRamp") &&
                 reader.GetBoolean("AddRamp");

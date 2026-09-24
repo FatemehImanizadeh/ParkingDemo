@@ -160,9 +160,24 @@ namespace ParkingDemo.Utils
             var pathList = new List<Point3d>();
             var linesList = new List<Line>();
             int lotNum = 0;
+            int carsPerCell = Parking.CarsPerCell;
+            void RecordLot(int grade, int turns)
+            {
+                totalLengthByCars += grade;
+                totalDirShift += turns;
+                lotNum++;
+                // Welford: population spread of physical distances and corresponding BFS turns.
+                double distance = grade * Parking.CellSize;
+                double lengthDelta = distance - lengthMean, turnsDelta = turns - turnsMean;
+                lengthMean += lengthDelta / lotNum;
+                turnsMean += turnsDelta / lotNum;
+                lengthM2 += lengthDelta * (distance - lengthMean);
+                turnsM2 += turnsDelta * (turns - turnsMean);
+            }
             void SaveSpread()
             {
-                // Population variance = M2 / N: all counted lots, not a sample. One lot gives zero.
+                // Every block has the same multiplicity in this Parking.
+                // Repeating each observation 2/3 times leaves population variance unchanged.
                 // Publish only on completed BFS; no lots or the iteration limit leaves statistics null.
                 if (lotNum == 0) return;
                 Parking.PathLengthVariance = Math.Max(0, lengthM2 / lotNum);
@@ -171,6 +186,27 @@ namespace ParkingDemo.Utils
             //var cellsGrade = new ParkingUtils.PathInfo.Cell[100][];
             var allLotTransforms = new DataTree<Transform>();
             var allCellsWithGrade = new DataTree<Rectangle3d>();
+            var convertedCells = new List<ParkingUtils.PathInfo.Cell>();
+            void RemoveConvertedPathCells()
+            {
+                if (convertedCells.Count == 0) return;
+                var points = new HashSet<Point3d>(convertedCells.Select(c => grid.Branch(c.row)[c.col]));
+                var centers = new HashSet<Point3d>(convertedCells.Select(c => Parking.PlanCells.Branch(c.row, c.col)[0].Center));
+                foreach (var cell in convertedCells) Parking.PlanMatrix[cell.row, cell.col] = 2;
+                foreach (var branch in allCellsWithGrade.Branches) branch.RemoveAll(r => centers.Contains(r.Center));
+                linesList.RemoveAll(line => points.Contains(line.From) || points.Contains(line.To));
+                foreach (var branch in Parking.PathPoints.Branches) branch.RemoveAll(points.Contains);
+                foreach (var path in Parking.PathPoints.Paths.ToArray())
+                    if (Parking.PathPoints.Branch(path).Count == 0) Parking.PathPoints.RemovePath(path);
+                foreach (var path in Parking.ParkingPaths)
+                {
+                    path.cells.RemoveAll(c => convertedCells.Any(lot => lot.row == c.row && lot.col == c.col));
+                    path.cellcount = path.cells.Count;
+                }
+                totalPathCellsVisited -= convertedCells.Count;
+                Parking.PathCellNumber = Parking.PathPoints.DataCount;
+                Parking.PreviewGeometry = null;
+            }
             var cellsGrade = new List<List<ParkingUtils.PathInfo.Cell>>();
             var currentGrade = 0;
             var visitedLast = false;
@@ -205,6 +241,8 @@ namespace ParkingDemo.Utils
                         var lastcellPt = grid.Branch(row)[col];
                         var currentCell = Parking.PlanCells.Branch(cell.row, cell.col)[0];
                         var giveParkingAccess = false;
+                        int pathNeighbours = 0;
+                        bool servesParking = false;
 
                         allCellsWithGrade.Add(currentCell, new Grasshopper.Kernel.Data.GH_Path(currentGrade));
                         for (int i = -1; i < 2; i++)
@@ -214,6 +252,8 @@ namespace ParkingDemo.Utils
                                 if (Math.Abs(i) + Math.Abs(j) == 1)
                                 {
                                     var item = ParkingUtils.CheckMatrix.GetMatrixItem(mtx, row + i, col + j);
+                                    if (item == 3) pathNeighbours++;
+                                    if (item == 1 || item == 2) servesParking = true;
                                     {
                                         var cellnew = new ParkingUtils.PathInfo.Cell(row + i, col + j);
                                         var cellintNew = new int[2] { cellnew.row, cellnew.col };
@@ -250,19 +290,9 @@ namespace ParkingDemo.Utils
                                             if (item == 2 || item == 1)
                                             {
                                                 giveParkingAccess = true; 
-                                                totalLengthByCars += currentGrade;
-                                                totalDirShift += cell.DirShift;
+                                                RecordLot(currentGrade, cell.DirShift);
                                                 var cellTransform = SetCarTransformations(Parking,  cellnew);
                                                 allLotTransforms.Add(cellTransform, new Grasshopper.Kernel.Data.GH_Path(currentGrade));
-                                                lotNum++;
-                                                // Welford's online update: stable spread without storing routes or changing BFS.
-                                                // Match the existing averages: grade * CellSize and the parent path's DirShift.
-                                                double distance = currentGrade * Parking.CellSize;
-                                                double lengthDelta = distance - lengthMean, turnsDelta = cell.DirShift - turnsMean;
-                                                lengthMean += lengthDelta / lotNum;
-                                                turnsMean += turnsDelta / lotNum;
-                                                lengthM2 += lengthDelta * (distance - lengthMean);
-                                                turnsM2 += turnsDelta * (cell.DirShift - turnsMean);
                                             }
                                             index++;
                                         }
@@ -271,26 +301,34 @@ namespace ParkingDemo.Utils
                                 }
                             }
                         }
-                        if (!giveParkingAccess)
+                        // Only replace an unused leaf, never an entrance or a route serving another bay.
+                        if (!giveParkingAccess && pathNeighbours == 1 && !servesParking &&
+                            !(row == startCell.row && col == startCell.col) &&
+                            !(Parking.EntryCell != null && row == Parking.EntryCell.row && col == Parking.EntryCell.col) &&
+                            !(Parking.RampEndCell != null && row == Parking.RampEndCell.row && col == Parking.RampEndCell.col))
                         {
-                            var X = cell.Direction; 
-                           var cellTransform =  SetCarTransformations(Parking, cell);
+                            var cellTransform = SetCarTransformations(Parking, cell);
                             allLotTransforms.Add(cellTransform, new Grasshopper.Kernel.Data.GH_Path(currentGrade-1));
+                            // Count the displayed dead-end block too, using its own BFS grade and turns.
+                            RecordLot(currentGrade - 1, cell.DirShift);
+                            convertedCells.Add(cell);
                         }
                     }
                     var len = currentGradeList.Count;
                     if (len == 0)
                     {
                         visitedLast = true;
-                        Parking.TotalLengthGrade = totalLengthByCars;
+                        Parking.TotalLengthGrade = totalLengthByCars * carsPerCell;
+                        // Apply occupancy changes after traversal so BFS keeps its original graph.
+                        RemoveConvertedPathCells();
                         Parking.MaxLengthGrade = currentGrade;
                         Parking.TotalPathCellsVisited = totalPathCellsVisited;
                         Parking.PathLines = linesList;
                         Parking.PathDirectionShift = dirShift;
-                        Parking.TotalDirShift = totalDirShift;
+                        Parking.TotalDirShift = totalDirShift * carsPerCell;
                         Parking.CarTransforms = allLotTransforms;
                         Parking.CellsWithGrade = allCellsWithGrade;
-                        Parking.LotNumber = lotNum; 
+                        Parking.LotNumber = lotNum * carsPerCell;
                         SaveSpread();
                         return currentGrade;
                         currentGradeList.Clear();
@@ -312,15 +350,16 @@ namespace ParkingDemo.Utils
                 else
                 {
                     visitedLast = true;
-                    Parking.TotalLengthGrade = totalLengthByCars;
+                    Parking.TotalLengthGrade = totalLengthByCars * carsPerCell;
+                    RemoveConvertedPathCells();
                     Parking.MaxLengthGrade = currentGrade;
                     Parking.TotalPathCellsVisited = totalPathCellsVisited;
                     Parking.PathLines = linesList;
                     Parking.PathDirectionShift = dirShift;
-                    Parking.TotalDirShift = totalDirShift;
+                    Parking.TotalDirShift = totalDirShift * carsPerCell;
                     Parking.CarTransforms = allLotTransforms;
                     Parking.CellsWithGrade = allCellsWithGrade;
-                    Parking.LotNumber = lotNum; 
+                    Parking.LotNumber = lotNum * carsPerCell;
                     SaveSpread();
                     return currentGrade;
                 }

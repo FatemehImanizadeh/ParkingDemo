@@ -73,11 +73,11 @@ namespace ParkingDemo
             //
             // Using Generic allows us to unwrap it ourselves reliably.
             pManager.AddGenericParameter(
-                "Car Block",
+                "Car Block (legacy)",
                 "Blk",
-                "Reference an existing double-car block instance in Rhino. " +
-                "The block definition will be used for all generated cars.",
+                "Unused; cars_2/cars_3 are selected internally from cell size.",
                 GH_ParamAccess.item);
+            pManager[1].Optional = true;
         }
 
 
@@ -113,8 +113,7 @@ namespace ParkingDemo
 
 
             // Read Car Block
-            if (!DA.GetData(1, ref carBlockGoo))
-                return;
+            DA.GetData(1, ref carBlockGoo); // Legacy socket; internal blocks are always used.
 
 
             if (parking == null)
@@ -177,17 +176,14 @@ namespace ParkingDemo
             // ---------------------------------------------------------------
 
             InstanceDefinition carBlockDefinition =
-                ResolveCarBlockDefinition(
-                    carBlockGoo,
-                    doc);
+                InternalCarBlocks.Definition(parking, doc);
 
 
             if (carBlockDefinition == null)
             {
                 AddRuntimeMessage(
                     GH_RuntimeMessageLevel.Error,
-                    "Car Block must reference an existing block instance " +
-                    "placed in the Rhino document.");
+                    "Could not load the embedded car block.");
 
                 return;
             }
@@ -310,6 +306,14 @@ namespace ParkingDemo
                 doc,
                 parking,
                 entranceLayerIndex);
+
+            var ramp = RampLayout.Build(parking, doc.ModelAbsoluteTolerance);
+            try
+            {
+                if (ramp.Count > 0)
+                    BakeResultsUtils.BakeGeometryColorPairs(doc, ramp, EnsureChildLayer(doc, "Parking", "Ramp"));
+            }
+            finally { foreach (var part in ramp) part.Geometry.Dispose(); }
 
 
             // ===============================================================

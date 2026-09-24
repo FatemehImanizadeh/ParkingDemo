@@ -26,6 +26,7 @@ namespace ParkingDemo.Utils
         public Guid ParkingId { get; private set; }
         public double Score { get; private set; }
         public int ParkingCount { get; private set; }
+        public int CarsPerCell { get; private set; }
         public double GrossArea { get; private set; }
         public double NetArea { get; private set; }
         public double CellSize { get; private set; }
@@ -54,7 +55,7 @@ namespace ParkingDemo.Utils
             var scene = new TopParkingScene
             {
                 Rank = rank, ParkingId = parking.ParkingID, Score = parking.Score,
-                ParkingCount = parking.LotNumber, MaximumTurns = parking.PathDirectionShift
+                ParkingCount = parking.LotNumber, CarsPerCell = parking.CarsPerCell, MaximumTurns = parking.PathDirectionShift
             };
             try
             {
@@ -78,6 +79,7 @@ namespace ParkingDemo.Utils
                 if (entrance?.Geometry != null)
                     scene.Parts.Add(new Part("Entrance", entrance.Geometry, entrance.Color));
                 scene.Add("Walls", ParkingPreviewGeometryBuilder.BuildParkingWall(parking, 0.20, tolerance));
+                scene.Add("Ramp", RampLayout.Build(parking, tolerance));
                 scene.Parts.Add(new Part("Outline", parking.Outline.DuplicateCurve(), Color.FromArgb(35, 35, 35)));
                 if (parking.CarTransforms != null)
                     scene.Cars.AddRange(parking.CarTransforms.Branches.Where(b => b != null).SelectMany(b => b));

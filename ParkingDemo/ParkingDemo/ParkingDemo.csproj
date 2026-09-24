@@ -28,6 +28,9 @@
   <ItemGroup>
     <Reference Include="System.Windows.Forms" />
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\cars_block_v7.3dm" LogicalName="ParkingDemo.Cars.3dm" />
+  </ItemGroup>
   
   <ItemGroup>
     <Compile Update="Properties\Resources.Designer.cs">

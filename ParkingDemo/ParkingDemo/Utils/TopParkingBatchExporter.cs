@@ -14,7 +14,7 @@ namespace ParkingDemo.Utils
 {
     internal static class TopParkingBatchExporter
     {
-        public static string Export(IReadOnlyList<Parking> selected, InstanceDefinition cars,
+        public static string Export(IReadOnlyList<Parking> selected,
             RhinoDoc source, string folder, int imageWidth)
         {
             if (source == null) throw new InvalidOperationException("Open a Rhino document before exporting.");
@@ -23,7 +23,7 @@ namespace ParkingDemo.Utils
             if (imageWidth < 800 || imageWidth > 4096) throw new ArgumentOutOfRangeException(nameof(imageWidth), "PNG width must be between 800 and 4096 pixels.");
 
             var scenes = new List<TopParkingScene>();
-            var carParts = new List<TopParkingScene.Part>();
+            var carTemplates = new Dictionary<int, List<TopParkingScene.Part>>();
             double tolerance = source.ModelAbsoluteTolerance;
             string units = source.ModelUnitSystem.ToString();
             string name = "ParkingTop_" + DateTime.Now.ToString("yyyyMMdd_HHmmssfff", CultureInfo.InvariantCulture) +
@@ -33,23 +33,20 @@ namespace ParkingDemo.Utils
             bool started = false;
             try
             {
-                if (cars != null)
-                {
-                    TopParkingScene.ReadCarParts(cars, source, BakeResultsUtils.CarCenteringTransform(cars), carParts, new HashSet<Guid>());
-                    if (carParts.Count == 0) throw new InvalidOperationException("The selected car block has no supported geometry.");
-                }
+                foreach (int count in selected.Select(p => p.CarsPerCell).Distinct())
+                    carTemplates.Add(count, InternalCarBlocks.CreateParts(count, source.ModelUnitSystem));
                 // Capture all geometry and statistics before any files are written.
                 for (int i = 0; i < selected.Count; i++) scenes.Add(TopParkingScene.Create(selected[i], i + 1, tolerance));
-                var rasterCars = TopParkingImage.Tessellate(carParts, tolerance);
+                var rasterCars = carTemplates.ToDictionary(p => p.Key, p => TopParkingImage.Tessellate(p.Value, tolerance));
                 Directory.CreateDirectory(staging);
                 started = true;
                 string imagesFolder = Path.Combine(staging, "Images");
                 Directory.CreateDirectory(imagesFolder);
                 foreach (var scene in scenes)
-                    TopParkingImage.Save(scene, rasterCars, Path.Combine(imagesFolder, scene.FileStem + ".png"), imageWidth, units, tolerance);
+                    TopParkingImage.Save(scene, rasterCars[scene.CarsPerCell], Path.Combine(imagesFolder, scene.FileStem + ".png"), imageWidth, units, tolerance);
                 TopParkingImage.SaveOverview(scenes.Select(scene => Path.Combine(imagesFolder, scene.FileStem + ".png")).ToList(),
                     Path.Combine(staging, "TopParkingOptions.png"), imageWidth);
-                WriteModel(scenes, carParts, source, Path.Combine(staging, "TopParkingOptions.3dm"));
+                WriteModel(scenes, carTemplates, source, Path.Combine(staging, "TopParkingOptions.3dm"));
                 // Only completed packages receive the final name; previous exports are never overwritten.
                 Directory.Move(staging, completed);
                 return completed;
@@ -63,12 +60,12 @@ namespace ParkingDemo.Utils
             finally
             {
                 foreach (var scene in scenes) scene.Dispose();
-                foreach (var part in carParts) part.Dispose();
+                foreach (var part in carTemplates.Values.SelectMany(p => p)) part.Dispose();
             }
         }
 
         private static void WriteModel(IReadOnlyList<TopParkingScene> scenes,
-            IReadOnlyList<TopParkingScene.Part> carParts, RhinoDoc source, string path)
+            IReadOnlyDictionary<int, List<TopParkingScene.Part>> carTemplates, RhinoDoc source, string path)
         {
             using (var model = new File3dm())
             {
@@ -76,20 +73,22 @@ namespace ParkingDemo.Utils
                 model.Settings.ModelAbsoluteTolerance = source.ModelAbsoluteTolerance;
                 model.Settings.ModelAngleToleranceRadians = source.ModelAngleToleranceRadians;
                 int templateLayer = model.AllLayers.AddLayer("Car block geometry", Color.Gray);
-                int blockIndex = -1;
-                if (carParts.Count > 0)
+                var blockIndices = new Dictionary<int, int>();
+                foreach (var template in carTemplates)
                 {
+                    var carParts = template.Value;
                     var attributes = carParts.Select(part => Attributes(templateLayer, part.Color, null)).ToArray();
                     try
                     {
-                        blockIndex = model.AllInstanceDefinitions.Add("Parking car block", "Copied from the selected car block",
+                        int blockIndex = model.AllInstanceDefinitions.Add("Parking cars_" + template.Key, "Embedded car block",
                             Point3d.Origin, carParts.Select(part => part.Geometry), attributes);
                         if (blockIndex < 0) throw new InvalidOperationException("Unable to embed the car block in the Rhino file.");
+                        blockIndices.Add(template.Key, blockIndex);
                     }
                     finally { foreach (var attribute in attributes) attribute.Dispose(); }
                 }
 
-                var bounds = scenes.Select(scene => ContentBounds(scene, carParts)).ToArray();
+                var bounds = scenes.Select(scene => ContentBounds(scene, carTemplates[scene.CarsPerCell])).ToArray();
                 double maxWidth = bounds.Max(box => box.Max.X - box.Min.X);
                 double maxHeight = bounds.Max(box => box.Max.Y - box.Min.Y);
                 double textHeight = Math.Max(Math.Max(maxWidth, maxHeight) / 85.0, scenes.Max(s => s.CellSize) * 0.15);
@@ -101,6 +100,7 @@ namespace ParkingDemo.Utils
                 for (int i = 0; i < scenes.Count; i++)
                 {
                     var scene = scenes[i];
+                    int blockIndex = blockIndices[scene.CarsPerCell];
                     double x = (i % columns) * tileWidth;
                     double y = -(i / columns) * tileHeight;
                     var move = Transform.Translation(x - bounds[i].Min.X, y - bounds[i].Min.Y, -bounds[i].Min.Z);
@@ -154,6 +154,10 @@ namespace ParkingDemo.Utils
                                 new Point3d(x, y - textHeight * 21.2, 0), textHeight * 0.8, attributes);
                     }
                     AddLegend(model, annotationLayer, scene, x, y - textHeight * 24, textHeight);
+                    if (scene.Parts.Any(part => part.Section == "Ramp"))
+                        using (var attributes = Attributes(annotationLayer, Color.FromArgb(55, 75, 85), scene))
+                            AddText(model, "Ramp arrows point toward the parking entrance.",
+                                new Point3d(x, y - textHeight * 27.5, 0), textHeight * 0.8, attributes);
                     totalBounds.Union(new Point3d(x - textHeight * 2, y - textHeight * 28, 0));
                     totalBounds.Union(new Point3d(x + tileWidth - textHeight * 2, y + maxHeight + textHeight * 6, 0));
                 }
