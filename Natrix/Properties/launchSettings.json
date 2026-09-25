@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Natrix": {
+      "commandName": "Executable",
+      "executablePath": "C:\\Program Files\\Rhino 8\\System\\Rhino.exe"
+    }
+  }
+}

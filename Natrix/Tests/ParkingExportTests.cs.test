@@ -1,0 +1,124 @@
+// Standalone regression harness: compile this file with the two exporter sources.
+// The .cs.test extension keeps it out of the Grasshopper plugin build.
+// A scalar Parking stub lets the actual CSV/chart code run without Rhino.
+using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Threading;
+using Natrix.Utils;
+
+namespace Natrix.Utils
+{
+    internal sealed class Parking
+    {
+        public Guid ParkingID { get; set; } = Guid.NewGuid();
+        public int LotNumber { get; set; }
+        public int TotalLengthGrade { get; set; }
+        public int MaxLengthGrade { get; set; }
+        public int TotalDirShift { get; set; }
+        public int PathDirectionShift { get; set; }
+        public double CellSize { get; set; } = 5;
+        public double Score { get; set; }
+    }
+}
+
+internal static class ParkingExportTests
+{
+    private static int assertions;
+    private static void Check(bool condition, string description)
+    {
+        if (!condition) throw new Exception(description);
+        assertions++;
+    }
+
+    private static void Expect<T>(Action action, string description) where T : Exception
+    {
+        try { action(); }
+        catch (T) { assertions++; return; }
+        throw new Exception(description);
+    }
+
+    public static int Main(string[] args)
+    {
+        string output = Path.GetFullPath(args[0]);
+        Directory.CreateDirectory(output);
+        var first = new Parking { LotNumber = 2, TotalLengthGrade = 7, MaxLengthGrade = 5,
+            TotalDirShift = 3, PathDirectionShift = 2, Score = 0.125 };
+        var best = new Parking { LotNumber = 4, TotalLengthGrade = 8, MaxLengthGrade = 3,
+            TotalDirShift = 4, PathDirectionShift = 1, Score = 0.9 };
+        var tied = new Parking { LotNumber = 1, Score = 0.9 };
+        var unscored = new Parking { Score = double.NaN };
+        var source = new[] { first, best, tied, unscored };
+        var rows = ParkingExportRow.Snapshot(source);
+        Check(rows[0].ParkingId == best.ParkingID && rows[1].ParkingId == tied.ParkingID, "Stable score ranking");
+        Check(rows[3].ParkingId == unscored.ParkingID, "Unavailable scores sort last");
+        Check(source[0] == first, "Source collection order must not change");
+        Check(rows[2].AveragePathLength == 17.5 && rows[2].MaximumPathLength == 25, "Convert fractional average and maximum to model units");
+        Check(rows[2].AverageTurns == 1.5 && rows[2].MaximumTurns == 2, "Turn values");
+        Check(!rows[3].AverageTurns.HasValue && !rows[3].MaximumPathLength.HasValue, "Zero-lot results have unavailable route metrics");
+        Check(rows[1].MaximumTurns == 0, "Zero PathDirectionShift exports as zero maximum turns");
+        Check(ParkingResultsExporter.ParallelValues(rows[2]).SequenceEqual(new double?[] { 2, 17.5, 25, 1.5, 2, 0.125 }),
+            "Parallel chart uses all six existing metrics in the labeled axis order");
+        Check(ParkingResultsExporter.ParallelPosition(10, 0, 10, true) == 0 &&
+            ParkingResultsExporter.ParallelPosition(0, 0, 10, true) == 1, "High counts and scores appear at top");
+        Check(ParkingResultsExporter.ParallelPosition(0, 0, 10, false) == 0 &&
+            ParkingResultsExporter.ParallelPosition(10, 0, 10, false) == 1, "Low distances and turns appear at top");
+        Check(ParkingResultsExporter.ParallelPosition(5, 5, 5, false) == 0.5, "Constant metrics use midpoint");
+        Check(!ParkingResultsExporter.ParallelPosition(null, 0, 1, true).HasValue &&
+            !ParkingResultsExporter.ParallelPosition(double.NaN, 0, 1, true).HasValue,
+            "Unavailable values break parallel lines");
+        Check(ParkingResultsExporter.ParallelPosition(-5, -10, 0, true) == 0.5, "Negative scores normalize correctly");
+        first.Score = -10;
+        first.LotNumber = 999;
+        Check(rows[2].Score == 0.125 && rows[2].ParkingCount == 2, "Snapshot stays fixed after source mutation");
+
+        Thread.CurrentThread.CurrentCulture = CultureInfo.GetCultureInfo("fr-FR");
+        string csv = ParkingExportRow.ToCsv(rows);
+        string[] lines = csv.Split(new[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
+        Check(lines.Length == 5 && lines.All(line => line.Split(',').Length == 8), "CSV has one header and one eight-column row per option");
+        Check(lines[3].Contains(",17.5,25,1.5,2,0.125"), "CSV numbers use invariant decimal separators");
+        Check(!csv.Contains("NaN") && !csv.Contains("Infinity"), "No invalid numeric values in CSV");
+        Check(ParkingExportRow.Snapshot(new Parking[] { null, best }).Count == 1, "Ignore null collection entries");
+
+        string csvPath = Path.Combine(output, "ranked.csv");
+        ParkingResultsExporter.Export(rows, csvPath, "Meters");
+        Check(File.Exists(csvPath) && File.Exists(Path.ChangeExtension(csvPath, ".png")), "One export creates both files");
+        Check(File.ReadAllText(csvPath) == csv, "Exported CSV matches chart snapshot");
+        byte[] bytes = File.ReadAllBytes(csvPath);
+        Check(bytes[0] == 0xEF && bytes[1] == 0xBB && bytes[2] == 0xBF, "UTF-8 BOM for spreadsheet applications");
+        using (var chart = new Bitmap(Path.ChangeExtension(csvPath, ".png")))
+            Check(chart.Width == 1800 && chart.Height == 2000, "Chart includes space for the additional parallel coordinates panel");
+        Expect<IOException>(() => ParkingResultsExporter.Export(rows, csvPath, "Meters"), "Existing export must not be overwritten");
+        Check(File.ReadAllText(csvPath) == csv, "Existing CSV stays unchanged");
+
+        string pngCollision = Path.Combine(output, "existing.png");
+        File.WriteAllText(pngCollision, "keep this file");
+        Expect<IOException>(() => ParkingResultsExporter.Export(rows, Path.ChangeExtension(pngCollision, ".csv"), "Meters"), "PNG collision must fail");
+        Check(File.ReadAllText(pngCollision) == "keep this file" && !File.Exists(Path.ChangeExtension(pngCollision, ".csv")), "PNG collision leaves no partial CSV");
+
+        string blockedCsv = Path.Combine(output, "blocked.csv");
+        Directory.CreateDirectory(Path.ChangeExtension(blockedCsv, ".png"));
+        Expect<UnauthorizedAccessException>(() => ParkingResultsExporter.Export(rows, blockedCsv, "Meters"), "Second-file write failure must propagate");
+        Check(!File.Exists(blockedCsv), "Second-file failure rolls back the newly created CSV");
+        Expect<InvalidOperationException>(() => ParkingResultsExporter.Export(new ParkingExportRow[0], Path.Combine(output, "empty.csv"), "Meters"), "Empty export rejected");
+        Check(!File.Exists(Path.Combine(output, "empty.csv")), "Empty export creates nothing");
+
+        using (var single = ParkingResultsExporter.CreateChart(ParkingExportRow.Snapshot(new[] { best }), "Meters"))
+            single.Save(Path.Combine(output, "single.png"));
+        using (var emptyMetrics = ParkingResultsExporter.CreateChart(ParkingExportRow.Snapshot(new[] { unscored }), "Meters"))
+            emptyMetrics.Save(Path.Combine(output, "unavailable.png"));
+
+        var many = Enumerable.Range(0, 1200).Select(i => new Parking {
+            LotNumber = 25 + i % 12, TotalLengthGrade = 120 + i % 50, MaxLengthGrade = 15,
+            TotalDirShift = 30 + i % 20, PathDirectionShift = 4, Score = 0.9 - i * 0.0005 }).ToArray();
+        var manyRows = ParkingExportRow.Snapshot(many);
+        ParkingResultsExporter.Export(manyRows, Path.Combine(output, "many.csv"), "Meters");
+        Check(File.ReadAllLines(Path.Combine(output, "many.csv")).Length == 1201, "All 1200 generated options are exported");
+        Console.WriteLine("PASS: " + assertions + " assertions; chart edge cases and 1200-option export rendered.");
+        Console.WriteLine("Artifacts: " + output);
+        return 0;
+    }
+}

@@ -1,4 +1,4 @@
-# Parking Generator
+# Natrix
 
 **A Rule-Based Generative Grasshopper Plugin for Automated Parking Layout Design**
 
